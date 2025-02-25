@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_webrtc/flutter_webrtc.dart';
 import 'package:gad_fly/controller/main_application_controller.dart';
 import 'package:gad_fly/controller/profile_controller.dart';
+import 'package:gad_fly/screens/home/outgoing_call.dart';
 import 'package:gad_fly/screens/home/profile/profile.dart';
 import 'package:gad_fly/services/socket_service.dart';
 import 'package:get/get.dart';
@@ -16,13 +18,19 @@ class _HomePageState extends State<HomePage> {
   MainApplicationController mainApplicationController = Get.find();
   ProfileController profileController = Get.put(ProfileController());
   bool isLoading = false;
+  MediaStream? remoteStream;
 
   ChatService chatService = ChatService();
   @override
   void initState() {
     if (mainApplicationController.authToken.value != "") {
       chatService.connect(context, mainApplicationController.authToken.value,
-          _onRequestAccepted);
+          _onRequestAccepted, (MediaStream stream) {
+        setState(() {
+          remoteStream = stream;
+        });
+        print("Remote stream received");
+      }, _onCallInitiate);
     }
     profileController.getProfile();
     // mainApplicationController.getTransaction().then((onValue) {
@@ -47,6 +55,18 @@ class _HomePageState extends State<HomePage> {
       throw Exception('Invalid response format: "data" field not found');
     }
     // mainApplicationController.partnerList = data["data"];
+  }
+
+  void _onCallInitiate(Map<String, dynamic> data) async {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => OutgoingCallScreen(
+          partnerName: "abc",
+          chatService: chatService,
+        ),
+      ),
+    );
   }
 
   @override
@@ -373,8 +393,21 @@ class _HomePageState extends State<HomePage> {
                                           child: GestureDetector(
                                             onTap: () async {
                                               //  await chatService.startCall();
-                                              chatService
-                                                  .initiateCall(item["_id"]);
+                                              await chatService.initiateCall(
+                                                  item["_id"], context);
+
+                                              // Navigator.push(
+                                              //     context,
+                                              //     MaterialPageRoute(
+                                              //         builder: (_) =>
+                                              //             CallScreen(
+                                              //               partnerId:
+                                              //                   item["_id"],
+                                              //               token:
+                                              //                   mainApplicationController
+                                              //                       .authToken
+                                              //                       .value,
+                                              //             )));
                                               // Get.to(() => CallScreen(
                                               //       callService: chatService,
                                               //     ));
@@ -401,7 +434,7 @@ class _HomePageState extends State<HomePage> {
                                                       color: whiteColor,
                                                     ),
                                                     Text(
-                                                      " Call ₹3/min",
+                                                      " Call ₹2/min",
                                                       style: TextStyle(
                                                           color: whiteColor,
                                                           fontSize: 12,
