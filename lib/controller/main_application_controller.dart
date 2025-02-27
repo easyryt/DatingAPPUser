@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:gad_fly/constant/api_end_point.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
+import 'package:permission_handler/permission_handler.dart';
 
 class MainApplicationController extends GetxController {
   var pageIdx = 0.obs;
@@ -60,6 +61,25 @@ class MainApplicationController extends GetxController {
     } catch (e) {
       print('Error while fetching notes: $e');
       return null;
+    }
+  }
+
+  Future<bool> checkMicrophonePermission() async {
+    final status = await Permission.microphone.status;
+
+    if (status.isGranted) {
+      print("Microphone permission already granted");
+      return true; // Permission is already granted
+    } else {
+      final requestStatus = await Permission.microphone.request();
+
+      if (requestStatus.isGranted) {
+        print("Microphone access granted");
+        return true;
+      } else {
+        print("Microphone permission denied");
+        return false; // Permission denied
+      }
     }
   }
 }

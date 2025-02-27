@@ -1,6 +1,10 @@
 import 'package:flutter/foundation.dart';
+import 'package:flutter_webrtc/flutter_webrtc.dart' as webrtc;
 import 'package:flutter_webrtc/flutter_webrtc.dart';
 import 'package:gad_fly/constant/api_end_point.dart';
+import 'package:gad_fly/controller/main_application_controller.dart';
+import 'package:gad_fly/controller/profile_controller.dart';
+import 'package:get/get.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
 
 class ChatService {
@@ -8,20 +12,32 @@ class ChatService {
   RTCPeerConnection? peerConnection;
   MediaStream? localStream;
   Function(MediaStream)? onRemoteStream;
+  MainApplicationController mainApplicationController = Get.find();
+  ProfileController profileController = Get.find();
   String? currentCallId;
   final Map<String, dynamic> configuration = {
     "iceServers": [
-      {"urls": "stun:stun.l.google.com:19302"},
-      {"urls": "stun:stun1.l.google.com:19302"}
+      {'urls': 'stun:stun.l.google.com:19302'},
+      {'urls': 'stun:stun1.l.google.com:19302'},
+      {'urls': 'stun:stun2.l.google.com:19302'},
+      {
+        "url": "stun:global.stun.twilio.com:3478",
+        "urls": "stun:global.stun.twilio.com:3478"
+      },
+      {
+        'urls': 'turn:relay1.expressturn.com:3478',
+        'username': 'ef8M6WFNY9LISR2PA9',
+        'credential': 'GOKTdvE3sYZQ6NRm',
+      },
     ]
   };
 
-  void connect(
-      context,
-      String? token,
-      Function(Map<String, dynamic>)? onMessageReceived,
-      Function(MediaStream) onRemoteStream,
-      Function(Map<String, dynamic>)? onOfferReceived) {
+  connect(
+    context,
+    String? token,
+    Function(Map<String, dynamic>)? onMessageReceived,
+    Function(MediaStream) onRemoteStream,
+  ) {
     this.onRemoteStream = onRemoteStream;
     socket = IO.io(ApiEndpoints.baseUrl, <String, dynamic>{
       'transports': ['websocket'],
@@ -41,24 +57,14 @@ class ChatService {
       requestPartnerList();
     });
 
-    // socket.onReconnect((_) {
-    //   if (kDebugMode) {
-    //     print('Re Connected to socket.io server');
-    //   }
-    // });
-
     socket.on('error', (data) async {
-      // if (kDebugMode) {
-      //   print(data);
-      //   Get.snackbar("Error", data["message"].toString());
-      // }
       if (kDebugMode) {
         try {
           print(data);
-          //  Get.snackbar("Error", data["message"].toString());
+          Get.snackbar("Error", data["message"].toString());
         } catch (error) {
           print("Error accessing driverId: $error");
-          //  Get.snackbar("An error occurred", "Please try again later.");
+          Get.snackbar("An error occurred", "Please try again later.");
         }
       }
     });
@@ -70,38 +76,25 @@ class ChatService {
       onMessageReceived!(data);
     });
 
-    // socket.on('incoming-call', (data) {
-    //   print('Incoming call from: ${data['caller']}');
-    // });
-
-    socket.on('call-initiated', (data) async {
-      currentCallId = data['callId'];
-      print('Call initiated with ID: ${data['callId']}');
-      // onOfferReceived!(data);
-
-      await setupWebRTC(isCaller: true);
-      await createAndSendOffer();
+    socket.on('wallet-update', (data) async {
+      if (kDebugMode) {
+        print(data);
+        profileController.amount.value = data;
+      }
     });
-
-    // socket.on('offer', (data) async {
-    //   print('Received offer');
-    //   await _handleOffer(data['offer']);
-    // });
 
     socket.on('answer', (data) async {
       print('Received answer');
-      // print("received Answer: ${data.sdp}");
-      await peerConnection
-          ?.setRemoteDescription(RTCSessionDescription(data, 'answer'));
+      await peerConnection?.setRemoteDescription(
+          RTCSessionDescription(data["answer"]['sdp'], data["answer"]['type']));
     });
 
     socket.on('ice-candidate', (data) async {
       print('Received ICE candidate');
       await peerConnection?.addCandidate(
-        RTCIceCandidate(
-            data['candidate'], data['sdpMid'], data['sdpMLineIndex']),
+        RTCIceCandidate(data['candidate']['candidate'],
+            data['candidate']['sdpMid'], data['candidate']['sdpMLineIndex']),
       );
-      // await peerConnection?.addCandidate(candidate);
     });
 
     socket.on('call-ended', (_) {
@@ -116,7 +109,7 @@ class ChatService {
     });
   }
 
-  void disconnect() {
+  disconnect() {
     socket.disconnect();
   }
 
@@ -124,39 +117,25 @@ class ChatService {
     socket.emit('getListOfPartner');
   }
 
-  Future<void> initiateCall(String partnerId, context) async {
+  Future<void> initiateCall(String partnerId) async {
     socket.emit('initiate-call', {'partnerId': partnerId});
-    // Navigator.push(
-    //     context, MaterialPageRoute(builder: (_) => OutgoingCallScreen()));
   }
 
-  // Future<void> acceptCall(String callId) async {
-  //   socket.emit('accept-call', {'callId': callId});
-  //   //  await _setupWebRTC();
-  // }
-
-  Future<void> setupWebRTC({required bool isCaller}) async {
+  Future<void> setupWebRTC() async {
     peerConnection = await createPeerConnection(configuration);
-    // localStream = await navigator.mediaDevices.getUserMedia({
-    //   'audio': true,
-    //   'video': false,
-    // });
-    // localStream?.getAudioTracks().forEach((track) {
-    //   peerConnection?.addTrack(track, localStream!);
-    // });
+
     try {
-      localStream = await navigator.mediaDevices.getUserMedia({
-        'audio': true,
+      localStream = await webrtc.navigator.mediaDevices.getUserMedia({
+        'audio': true, // Request audio only
         'video': false,
       });
 
       localStream?.getAudioTracks().forEach((track) {
-        //  print("Remote track: ${track.id}, enabled: ${track.enabled}");
         peerConnection?.addTrack(track, localStream!);
       });
     } catch (e) {
       print("Error getting user media: $e");
-      return; // Stop setup if media access fails
+      return;
     }
 
     peerConnection?.onIceCandidate = (candidate) {
@@ -172,22 +151,20 @@ class ChatService {
   }
 
   Future<void> createAndSendOffer() async {
+    if (peerConnection == null) {
+      await setupWebRTC();
+    }
     RTCSessionDescription offer = await peerConnection!.createOffer();
     await peerConnection!.setLocalDescription(offer);
-    socket.emit('offer', {'callId': currentCallId, 'offer': offer.sdp});
-    //  print("Sending Offer: ${offer.sdp}");
+    socket.emit('offer', {
+      'callId': currentCallId,
+      'offer': {'sdp': offer.sdp, 'type': offer.type},
+    });
   }
 
-  // Future<void> _handleOffer(String offer) async {
-  //   await peerConnection!
-  //       .setRemoteDescription(RTCSessionDescription(offer, 'offer'));
-  //   RTCSessionDescription answer = await peerConnection!.createAnswer();
-  //   await peerConnection!.setLocalDescription(answer);
-  //   socket.emit('answer', {'callId': currentCallId, 'answer': answer.sdp});
-  // }
-
-  void endCall() {
+  endCall() {
     socket.emit('end-call', {'callId': currentCallId});
+    endCalls();
   }
 
   void endCalls() {
