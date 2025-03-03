@@ -1,3 +1,6 @@
+import 'dart:async';
+
+import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
@@ -22,8 +25,73 @@ class _HomePageState extends State<HomePage> {
   bool isCalling = false;
   String avtarName = '';
   MediaStream? remoteStream;
+  Duration _callDuration = Duration.zero;
+  Timer? _timer;
+  bool _isTimerRunning = false;
 
   ChatService chatService = ChatService();
+
+  void _startTimer() {
+    _callDuration = Duration.zero;
+    _isTimerRunning = true;
+    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      setState(() {
+        _callDuration += const Duration(seconds: 1);
+      });
+    });
+  }
+
+  void _stopTimer() {
+    _timer?.cancel();
+    _timer = null;
+    _isTimerRunning = false;
+    _callDuration = Duration.zero;
+  }
+
+  String _formatDuration(Duration duration) {
+    String twoDigits(int n) => n.toString().padLeft(2, '0');
+    final hours = twoDigits(duration.inHours);
+    final minutes = twoDigits(duration.inMinutes.remainder(60));
+    final seconds = twoDigits(duration.inSeconds.remainder(60));
+    return "$hours:$minutes:$seconds";
+  }
+
+  bool _isMuted = false;
+
+  void _toggleMute() {
+    setState(() {
+      _isMuted = !_isMuted;
+    });
+    chatService.toggleMicrophone(_isMuted);
+  }
+
+  bool _isLoudspeakerOn = false;
+
+  void _toggleLoudspeaker() async {
+    setState(() {
+      _isLoudspeakerOn = !_isLoudspeakerOn;
+    });
+    await chatService.toggleLoudspeaker(_isLoudspeakerOn);
+  }
+
+  final AudioPlayer _audioPlayer = AudioPlayer();
+  bool _isRinging = false;
+
+  void _playRingingSound() async {
+    await _audioPlayer.setReleaseMode(ReleaseMode.loop);
+    await _audioPlayer.play(AssetSource("sound/call_ring.mp4"));
+
+    setState(() {
+      _isRinging = true;
+    });
+  }
+
+  void _stopRingingSound() async {
+    await _audioPlayer.stop();
+    setState(() {
+      _isRinging = false;
+    });
+  }
 
   initFunction() async {
     if (mainApplicationController.authToken.value != "") {
@@ -45,18 +113,19 @@ class _HomePageState extends State<HomePage> {
     mainApplicationController.checkMicrophonePermission();
     initFunction();
     profileController.getProfile();
-
     chatService.socket.on('call-initiated', (data) async {
       chatService.currentCallId = data['callId'];
       print('Call initiated with ID: ${data['callId']}');
-      await chatService.setupWebRTC();
+      _playRingingSound();
     });
 
-    chatService.socket.on('call-accepted', (_) {
+    chatService.socket.on('call-accepted', (_) async {
+      await chatService.createAndSendOffer();
       setState(() {
         isCallConnected = true;
       });
-      chatService.createAndSendOffer();
+      _stopRingingSound();
+      _startTimer();
     });
 
     chatService.socket.on('call-rejected', (_) {
@@ -64,6 +133,8 @@ class _HomePageState extends State<HomePage> {
         isCalling = false;
         isCallConnected = false;
       });
+      _stopRingingSound();
+      _stopTimer();
     });
 
     chatService.socket.on('call-ended', (_) {
@@ -71,6 +142,9 @@ class _HomePageState extends State<HomePage> {
         isCalling = false;
         isCallConnected = false;
       });
+      _stopRingingSound();
+      chatService.endCalls();
+      _stopTimer();
     });
     super.initState();
   }
@@ -89,7 +163,10 @@ class _HomePageState extends State<HomePage> {
 
   @override
   void dispose() {
+    _audioPlayer.stop();
+    _audioPlayer.dispose();
     chatService.disconnect();
+    _stopTimer();
     super.dispose();
   }
 
@@ -204,42 +281,94 @@ class _HomePageState extends State<HomePage> {
         body: isCalling
             ? Center(
                 child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
+                    const SizedBox(height: 30),
                     Text(
                       isCallConnected ? "Connected" : "Partner Calling...",
                       style: const TextStyle(
                           fontSize: 24, fontWeight: FontWeight.bold),
                     ),
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 8),
+                    if (isCallConnected)
+                      Text(
+                        _formatDuration(_callDuration),
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                            fontSize: 15, fontWeight: FontWeight.w400),
+                      ),
+                    const SizedBox(height: 8),
                     Text(
                       "$avtarName ",
                       style: const TextStyle(fontSize: 18),
                     ),
-                    const SizedBox(height: 40),
-                    ElevatedButton(
-                      onPressed: () async {
-                        if (chatService.currentCallId != null) {
-                          await chatService.endCall();
-                          setState(() {
-                            isCalling = false;
-                          });
-                        } else {
-                          setState(() {
-                            isCalling = false;
-                          });
-                        }
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.red,
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 40, vertical: 15),
-                      ),
-                      child: const Text(
-                        "End Call",
-                        style: TextStyle(fontSize: 18, color: Colors.white),
-                      ),
+                    const SizedBox(height: 20),
+                    const Spacer(),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        if (isCallConnected)
+                          IconButton(
+                            onPressed: _toggleLoudspeaker,
+                            style: IconButton.styleFrom(
+                                backgroundColor: _isLoudspeakerOn
+                                    ? Colors.green
+                                    : Colors.grey,
+                                padding: const EdgeInsets.all(10),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(50),
+                                )),
+                            icon: const Icon(
+                              Icons.volume_up,
+                              size: 28,
+                              color: Colors.white,
+                            ),
+                          ),
+                        if (isCallConnected) const SizedBox(width: 10),
+                        if (isCallConnected)
+                          IconButton(
+                            icon: Icon(
+                              _isMuted ? Icons.mic_off : Icons.mic,
+                              size: 32,
+                              color: Colors.white,
+                            ),
+                            onPressed: _toggleMute,
+                            style: IconButton.styleFrom(
+                                backgroundColor:
+                                    _isMuted ? Colors.red : Colors.grey,
+                                padding: const EdgeInsets.all(10),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(50),
+                                )),
+                          ),
+                        if (isCallConnected) const SizedBox(width: 10),
+                        ElevatedButton(
+                          onPressed: () async {
+                            if (chatService.currentCallId != null) {
+                              await chatService.endCall();
+                              setState(() {
+                                isCalling = false;
+                              });
+                              _stopTimer();
+                            } else {
+                              setState(() {
+                                isCalling = false;
+                              });
+                            }
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.red,
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 28, vertical: 12),
+                          ),
+                          child: const Text(
+                            "End Call",
+                            style: TextStyle(fontSize: 18, color: Colors.white),
+                          ),
+                        ),
+                      ],
                     ),
+                    const SizedBox(height: 40),
                   ],
                 ),
               )
@@ -514,6 +643,8 @@ class _HomePageState extends State<HomePage> {
                                                             item["personalInfo"]
                                                                 ["avatarName"];
                                                       });
+                                                      await chatService
+                                                          .setupWebRTC();
                                                       await chatService
                                                           .initiateCall(
                                                               item["_id"]);

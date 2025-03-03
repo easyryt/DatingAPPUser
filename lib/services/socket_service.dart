@@ -11,6 +11,7 @@ class ChatService {
   late IO.Socket socket;
   RTCPeerConnection? peerConnection;
   MediaStream? localStream;
+  MediaStreamTrack? localAudioTrack;
   Function(MediaStream)? onRemoteStream;
   MainApplicationController mainApplicationController = Get.find();
   ProfileController profileController = Get.find();
@@ -79,7 +80,10 @@ class ChatService {
     socket.on('wallet-update', (data) async {
       if (kDebugMode) {
         print(data);
-        profileController.amount.value = data;
+      }
+      if (data.containsKey("walletAmount")) {
+        profileController.amount.value =
+            double.parse("${data["walletAmount"]}");
       }
     });
 
@@ -121,33 +125,53 @@ class ChatService {
     socket.emit('initiate-call', {'partnerId': partnerId});
   }
 
-  Future<void> setupWebRTC() async {
-    peerConnection = await createPeerConnection(configuration);
-
+  bool _isLoudspeakerOn = false;
+  Future<void> toggleLoudspeaker(bool isLoudspeakerOn) async {
     try {
+      await webrtc.Helper.setSpeakerphoneOn(isLoudspeakerOn);
+      _isLoudspeakerOn = isLoudspeakerOn;
+      print('Loudspeaker is ${isLoudspeakerOn ? 'ON' : 'OFF'}');
+    } catch (e) {
+      print('Error toggling loudspeaker: $e');
+    }
+  }
+
+  void toggleMicrophone(bool isMuted) {
+    if (localAudioTrack != null) {
+      localAudioTrack!.enabled = !isMuted;
+    }
+  }
+
+  Future<void> setupWebRTC() async {
+    try {
+      await endCalls();
       localStream = await webrtc.navigator.mediaDevices.getUserMedia({
         'audio': true, // Request audio only
         'video': false,
       });
 
+      localAudioTrack = localStream!.getAudioTracks().first;
+
+      peerConnection = await createPeerConnection(configuration);
+
       localStream?.getAudioTracks().forEach((track) {
         peerConnection?.addTrack(track, localStream!);
       });
+
+      peerConnection?.onTrack = (event) {
+        if (event.track.kind == 'audio' && event.streams.isNotEmpty) {
+          onRemoteStream?.call(event.streams.first);
+        }
+      };
+
+      peerConnection?.onIceCandidate = (candidate) {
+        socket.emit('ice-candidate',
+            {'callId': currentCallId, 'candidate': candidate.toMap()});
+      };
     } catch (e) {
       print("Error getting user media: $e");
       return;
     }
-
-    peerConnection?.onIceCandidate = (candidate) {
-      socket.emit('ice-candidate',
-          {'callId': currentCallId, 'candidate': candidate.toMap()});
-    };
-
-    peerConnection?.onTrack = (event) {
-      if (event.track.kind == 'audio' && event.streams.isNotEmpty) {
-        onRemoteStream?.call(event.streams[0]);
-      }
-    };
   }
 
   Future<void> createAndSendOffer() async {
@@ -167,10 +191,11 @@ class ChatService {
     endCalls();
   }
 
-  void endCalls() {
+  endCalls() {
     peerConnection?.close();
     localStream?.dispose();
     peerConnection = null;
     localStream = null;
+    localAudioTrack = null;
   }
 }

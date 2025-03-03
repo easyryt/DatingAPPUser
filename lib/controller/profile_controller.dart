@@ -12,7 +12,7 @@ class ProfileController extends GetxController {
   var intersted = 0.obs;
   var imgUrl = "".obs;
   var nameS = "".obs;
-  var amount = 0.obs;
+  var amount = 0.0.obs;
   var emailS = "".obs;
   var phoneNumberS = "".obs;
   final name = TextEditingController();
@@ -34,7 +34,7 @@ class ProfileController extends GetxController {
       final responseData = json.decode(response.body);
       if (responseData is Map<String, dynamic>) {
         nameS.value = responseData["data"]["name"];
-        amount.value = responseData["data"]["walletAmount"];
+        amount.value = double.parse("${responseData["data"]["walletAmount"]}");
         name.text = responseData["data"]["name"];
         emailS.value = responseData["data"]["email"];
         email.text = responseData["data"]["email"];
