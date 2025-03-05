@@ -46,6 +46,7 @@ dependencies:
   flutter_webrtc: ^0.12.5
   permission_handler: ^11.3.1
   audioplayers: ^6.1.0
+  intl: ^0.20.0
 
 dev_dependencies:
   flutter_test:
@@ -71,7 +72,6 @@ flutter:
 
   # To add assets to your application, add an assets section, like this:
   assets:
-    - assets/sound/call_ring.mp3
     - assets/sound/call_ring.mp4
     - assets/
   #   - images/a_dot_ham.jpeg

@@ -4,12 +4,41 @@ import 'package:flutter/foundation.dart';
 import 'package:gad_fly/constant/api_end_point.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
+import 'package:intl/intl.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 class MainApplicationController extends GetxController {
   var pageIdx = 0.obs;
   var authToken = ''.obs;
   var partnerList = [].obs;
+
+  var transactionList = [].obs;
+  Future getAllTransaction() async {
+    final response = await http.get(
+      Uri.parse('${ApiEndpoints.baseUrl}/user/callHistory/getAll'),
+      headers: {
+        'x-user-token': authToken.value,
+      },
+    );
+    if (response.statusCode == 200) {
+      transactionList.clear();
+      final responseData = json.decode(response.body);
+      // if (data.containsKey('data')) {
+      //   final List<dynamic> noteData = data['data'];
+      //   List<Map<String, dynamic>> dataList =
+      //   noteData.map((data) => data as Map<String, dynamic>).toList();
+      //   mainApplicationController.partnerList.value = dataList;
+      // } else {
+      //   throw Exception('Invalid response format: "data" field not found');
+      // }
+      transactionList.value = responseData["data"];
+      return true;
+    } else {
+      final responseData = json.decode(response.body);
+      print(responseData);
+      return false;
+    }
+  }
 
   Future transactionCreate(requestBody) async {
     Uri uri = Uri.parse('${ApiEndpoints.baseUrl}/user/transaction/create');
@@ -80,6 +109,25 @@ class MainApplicationController extends GetxController {
         print("Microphone permission denied");
         return false; // Permission denied
       }
+    }
+  }
+
+  String formatDate(String inputDate) {
+    try {
+      DateTime dateTime = DateTime.parse(inputDate);
+      DateTime now = DateTime.now();
+      // String outputDate = DateFormat('dd-MMM   hh:mm a').format(dateTime);
+      // return outputDate;
+      if (dateTime.year == now.year &&
+          dateTime.month == now.month &&
+          dateTime.day == now.day) {
+        return 'Today ${DateFormat('hh:mm a').format(dateTime)}'; // "Today hh:mm a"
+      } else {
+        return DateFormat('dd-MMM  hh:mm a').format(dateTime);
+      }
+    } catch (e) {
+      print('Invalid date format: $e');
+      return 'Invalid Date';
     }
   }
 }

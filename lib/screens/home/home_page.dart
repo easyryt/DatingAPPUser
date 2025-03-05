@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
 import 'package:gad_fly/controller/main_application_controller.dart';
 import 'package:gad_fly/controller/profile_controller.dart';
+import 'package:gad_fly/screens/home/history_screen.dart';
 import 'package:gad_fly/screens/home/profile/profile.dart';
 import 'package:gad_fly/services/socket_service.dart';
 import 'package:get/get.dart';
@@ -111,8 +112,10 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     mainApplicationController.checkMicrophonePermission();
+
     initFunction();
     profileController.getProfile();
+    mainApplicationController.getAllTransaction();
     chatService.socket.on('call-initiated', (data) async {
       chatService.currentCallId = data['callId'];
       print('Call initiated with ID: ${data['callId']}');
@@ -141,6 +144,7 @@ class _HomePageState extends State<HomePage> {
       setState(() {
         isCalling = false;
         isCallConnected = false;
+        remoteStream = null;
       });
       _stopRingingSound();
       chatService.endCalls();
@@ -165,6 +169,7 @@ class _HomePageState extends State<HomePage> {
   void dispose() {
     _audioPlayer.stop();
     _audioPlayer.dispose();
+    remoteStream?.dispose();
     chatService.disconnect();
     _stopTimer();
     super.dispose();
@@ -179,7 +184,6 @@ class _HomePageState extends State<HomePage> {
     var appColor = const Color(0xFF8CA6DB);
     var appYellow = const Color(0xFFFFE30F);
     var appGreenColor = const Color(0xFF35D673);
-    var greyMedium1Color = const Color(0xFFDBDBDB);
     return WillPopScope(
       onWillPop: () async {
         SystemNavigator.pop();
@@ -229,53 +233,60 @@ class _HomePageState extends State<HomePage> {
             ),
           ),
           actions: [
-            GestureDetector(
-              onTap: () async {
-                final profileData = {
-                  "amount": 100,
-                };
-                setState(() {
-                  isLoading = true;
-                });
-                await mainApplicationController
-                    .transactionCreate(profileData)
-                    .then((onValue) {
-                  if (onValue != null) {
-                    Get.snackbar("wow", "payment 100 successfully");
-                  } else {
-                    Get.snackbar("Alert", "payment  failed");
-                  }
-                });
-                setState(() {
-                  isLoading = false;
-                });
-              },
-              child: Container(
-                height: 28,
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                margin: const EdgeInsets.only(right: 16),
-                decoration: BoxDecoration(
-                    color: appYellow.withOpacity(0.15),
-                    borderRadius: BorderRadius.circular(4),
-                    border: Border.all(color: appYellow, width: 1.1)),
-                child: Center(
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Obx(() {
-                        return Text(
-                          "₹${profileController.amount}",
-                          style: TextStyle(
-                              color: blackColor,
-                              fontSize: 11,
-                              fontWeight: FontWeight.w500),
-                        );
-                      }),
-                    ],
+            if (!isCalling)
+              IconButton(
+                  onPressed: () {
+                    Get.to(() => const HistoryScreen());
+                  },
+                  icon: const Icon(Icons.history)),
+            if (!isCalling)
+              GestureDetector(
+                onTap: () async {
+                  final profileData = {
+                    "amount": 100,
+                  };
+                  setState(() {
+                    isLoading = true;
+                  });
+                  await mainApplicationController
+                      .transactionCreate(profileData)
+                      .then((onValue) {
+                    if (onValue != null) {
+                      Get.snackbar("wow", "payment 100 successfully");
+                    } else {
+                      Get.snackbar("Alert", "payment  failed");
+                    }
+                  });
+                  setState(() {
+                    isLoading = false;
+                  });
+                },
+                child: Container(
+                  height: 28,
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  margin: const EdgeInsets.only(right: 16),
+                  decoration: BoxDecoration(
+                      color: appYellow.withOpacity(0.15),
+                      borderRadius: BorderRadius.circular(4),
+                      border: Border.all(color: appYellow, width: 1.1)),
+                  child: Center(
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Obx(() {
+                          return Text(
+                            "₹${profileController.amount}",
+                            style: TextStyle(
+                                color: blackColor,
+                                fontSize: 11,
+                                fontWeight: FontWeight.w500),
+                          );
+                        }),
+                      ],
+                    ),
                   ),
                 ),
-              ),
-            )
+              )
           ],
         ),
         body: isCalling
@@ -312,16 +323,16 @@ class _HomePageState extends State<HomePage> {
                             onPressed: _toggleLoudspeaker,
                             style: IconButton.styleFrom(
                                 backgroundColor: _isLoudspeakerOn
-                                    ? Colors.green
+                                    ? Colors.white
                                     : Colors.grey,
                                 padding: const EdgeInsets.all(10),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(50),
                                 )),
-                            icon: const Icon(
+                            icon: Icon(
                               Icons.volume_up,
                               size: 28,
-                              color: Colors.white,
+                              color: _isLoudspeakerOn ? blackColor : whiteColor,
                             ),
                           ),
                         if (isCallConnected) const SizedBox(width: 10),
