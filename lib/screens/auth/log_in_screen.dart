@@ -166,10 +166,10 @@ class _LogInScreenState extends State<LogInScreen> {
                             Container(
                               color: const Color(0xFF323232),
                               height: 1,
-                              width: width * 0.275,
+                              width: width * 0.27,
                             ),
                             SizedBox(
-                              width: width * 0.02,
+                              width: width * 0.01,
                             ),
                             InkWell(
                               onTap: () {
@@ -188,12 +188,12 @@ class _LogInScreenState extends State<LogInScreen> {
                               ),
                             ),
                             SizedBox(
-                              width: width * 0.02,
+                              width: width * 0.01,
                             ),
                             Container(
                               color: const Color(0xFF323232),
                               height: 1,
-                              width: width * 0.275,
+                              width: width * 0.27,
                             ),
                           ],
                         )

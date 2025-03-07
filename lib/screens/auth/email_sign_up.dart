@@ -18,7 +18,8 @@ class EmailSignUpScreen extends StatefulWidget {
 }
 
 class _EmailSignUpScreenState extends State<EmailSignUpScreen> {
-  TextEditingController nameController = TextEditingController();
+  TextEditingController oNameController = TextEditingController();
+  TextEditingController aNameController = TextEditingController();
   TextEditingController emailController = TextEditingController();
   TextEditingController passwordController = TextEditingController();
 
@@ -72,19 +73,31 @@ class _EmailSignUpScreenState extends State<EmailSignUpScreen> {
                               fontWeight: FontWeight.bold),
                         ),
                         SizedBox(
-                          height: height * 0.08,
+                          height: height * 0.04,
                         ),
                         textFormFieldWidget(
                           isDense: true,
-                          controller: nameController,
+                          controller: oNameController,
                           textStyleColor: blackColor,
                           cursorColor: blackColor,
                           focusedBorderColor: blackColor,
                           labelColor: blackColor,
-                          labelText: "Full Name",
+                          labelText: "Original Name",
                         ),
                         SizedBox(
-                          height: height * 0.04,
+                          height: height * 0.03,
+                        ),
+                        textFormFieldWidget(
+                          isDense: true,
+                          controller: aNameController,
+                          textStyleColor: blackColor,
+                          cursorColor: blackColor,
+                          focusedBorderColor: blackColor,
+                          labelColor: blackColor,
+                          labelText: "Display Name",
+                        ),
+                        SizedBox(
+                          height: height * 0.03,
                         ),
                         textFormFieldWidget(
                           isDense: true,
@@ -95,9 +108,7 @@ class _EmailSignUpScreenState extends State<EmailSignUpScreen> {
                           labelColor: blackColor,
                           labelText: "Email Address",
                         ),
-                        SizedBox(
-                          height: height * 0.04,
-                        ),
+                        SizedBox(height: height * 0.03),
                         textFormFieldWidget(
                           isDense: true,
                           controller: passwordController,
@@ -108,7 +119,7 @@ class _EmailSignUpScreenState extends State<EmailSignUpScreen> {
                           labelText: "Password",
                         ),
                         SizedBox(
-                          height: height * 0.04,
+                          height: height * 0.03,
                         ),
                         elevatedButton(
                           onPressed: () async {
@@ -232,7 +243,8 @@ class _EmailSignUpScreenState extends State<EmailSignUpScreen> {
           'Content-Type': 'application/json',
         },
         body: json.encode({
-          "name": nameController.text.toString(),
+          "name": oNameController.text.toString(),
+          "avatarName": aNameController.text.toString(),
           "email": emailController.text.toString(),
           "password": passwordController.text.toString(),
         }),
@@ -256,6 +268,8 @@ class _EmailSignUpScreenState extends State<EmailSignUpScreen> {
           //             )));
           snackBar(responseData['message'], context);
         }
+        Navigator.pushReplacement(
+            context, MaterialPageRoute(builder: (_) => const LogInScreen()));
       } else {
         final responseData = json.decode(response.body);
         if (mounted) {

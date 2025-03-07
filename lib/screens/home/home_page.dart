@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
 import 'package:gad_fly/controller/main_application_controller.dart';
 import 'package:gad_fly/controller/profile_controller.dart';
+import 'package:gad_fly/screens/chat.dart';
 import 'package:gad_fly/screens/home/history_screen.dart';
 import 'package:gad_fly/screens/home/profile/profile.dart';
 import 'package:gad_fly/services/socket_service.dart';
@@ -609,9 +610,9 @@ class _HomePageState extends State<HomePage> {
                                             ),
                                             const SizedBox(height: 8),
                                             Row(
-                                              mainAxisAlignment:
-                                                  MainAxisAlignment
-                                                      .spaceBetween,
+                                              // mainAxisAlignment:
+                                              //     MainAxisAlignment
+                                              //         .spaceBetween,
                                               children: [
                                                 Container(
                                                   height: 32,
@@ -645,7 +646,7 @@ class _HomePageState extends State<HomePage> {
                                                     ),
                                                   ),
                                                 ),
-                                                const SizedBox(width: 12),
+                                                const SizedBox(width: 8),
                                                 Expanded(
                                                   child: GestureDetector(
                                                     onTap: () async {
@@ -678,7 +679,7 @@ class _HomePageState extends State<HomePage> {
                                                       height: 36,
                                                       padding: const EdgeInsets
                                                           .symmetric(
-                                                          horizontal: 16),
+                                                          horizontal: 4),
                                                       decoration: BoxDecoration(
                                                         color: appColor,
                                                         borderRadius:
@@ -712,7 +713,17 @@ class _HomePageState extends State<HomePage> {
                                                       ),
                                                     ),
                                                   ),
-                                                )
+                                                ),
+                                                const SizedBox(width: 8),
+                                                IconButton(
+                                                    onPressed: () {
+                                                      Get.to(() => ChatScreen(
+                                                            receiverId:
+                                                                item["_id"],
+                                                          ));
+                                                    },
+                                                    icon: const Icon(
+                                                        Icons.message))
                                               ],
                                             )
                                           ],

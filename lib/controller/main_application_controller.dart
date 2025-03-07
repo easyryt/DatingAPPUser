@@ -57,6 +57,7 @@ class MainApplicationController extends GetxController {
         final responseData = json.decode(response.body);
 
         final data = responseData['data'];
+        await getTransaction();
         return data;
       } else {
         final responseData = json.decode(response.body);
@@ -84,11 +85,11 @@ class MainApplicationController extends GetxController {
         final data = responseData['data'];
         return data;
       } else {
-        print('Failed to load notes: ${response.statusCode}');
+        print('Failed to load wallet: ${response.statusCode}');
         return null;
       }
     } catch (e) {
-      print('Error while fetching notes: $e');
+      print('Error while fetching wallet: $e');
       return null;
     }
   }
