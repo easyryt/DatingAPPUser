@@ -1,15 +1,16 @@
 import 'dart:async';
 
 import 'package:audioplayers/audioplayers.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
+import 'package:gad_fly/constant/color_code.dart';
 import 'package:gad_fly/controller/main_application_controller.dart';
 import 'package:gad_fly/controller/profile_controller.dart';
-import 'package:gad_fly/screens/chat.dart';
-import 'package:gad_fly/screens/home/history_screen.dart';
-import 'package:gad_fly/screens/home/profile/profile.dart';
+import 'package:gad_fly/screens/messages_screen.dart';
 import 'package:gad_fly/services/socket_service.dart';
+import 'package:gad_fly/widgets/drawer.dart';
 import 'package:get/get.dart';
 
 class HomePage extends StatefulWidget {
@@ -98,9 +99,6 @@ class _HomePageState extends State<HomePage> {
   initFunction() async {
     if (mainApplicationController.authToken.value != "") {
       await chatService.connect(
-        context,
-        mainApplicationController.authToken.value,
-        _onRequestAccepted,
         (MediaStream stream) {
           setState(() {
             remoteStream = stream;
@@ -116,6 +114,8 @@ class _HomePageState extends State<HomePage> {
 
     initFunction();
     profileController.getProfile();
+    mainApplicationController.getAllChat();
+    mainApplicationController.getTransaction();
     mainApplicationController.getAllTransaction();
     chatService.socket.on('call-initiated', (data) async {
       chatService.currentCallId = data['callId'];
@@ -171,7 +171,7 @@ class _HomePageState extends State<HomePage> {
     _audioPlayer.stop();
     _audioPlayer.dispose();
     remoteStream?.dispose();
-    chatService.disconnect();
+    // chatService.disconnect();
     _stopTimer();
     super.dispose();
   }
@@ -180,9 +180,6 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     var height = MediaQuery.of(context).size.height;
     var width = MediaQuery.of(context).size.width;
-    var whiteColor = Colors.white;
-    var blackColor = Colors.black;
-    var appColor = const Color(0xFF8CA6DB);
     var appYellow = const Color(0xFFFFE30F);
     var appGreenColor = const Color(0xFF35D673);
     return WillPopScope(
@@ -192,10 +189,10 @@ class _HomePageState extends State<HomePage> {
       },
       child: Scaffold(
         resizeToAvoidBottomInset: false,
-        backgroundColor: whiteColor,
+        backgroundColor: white,
         appBar: AppBar(
-          backgroundColor: whiteColor,
-          surfaceTintColor: whiteColor,
+          backgroundColor: white,
+          surfaceTintColor: white,
           leadingWidth: 0,
           automaticallyImplyLeading: false,
           title: GestureDetector(
@@ -203,9 +200,6 @@ class _HomePageState extends State<HomePage> {
               await chatService.disconnect();
               if (mainApplicationController.authToken.value != "") {
                 chatService.connect(
-                  context,
-                  mainApplicationController.authToken.value,
-                  _onRequestAccepted,
                   (MediaStream stream) {
                     setState(() {
                       remoteStream = stream;
@@ -219,9 +213,7 @@ class _HomePageState extends State<HomePage> {
                 Text(
                   "Gad",
                   style: TextStyle(
-                      color: blackColor,
-                      fontWeight: FontWeight.w700,
-                      fontSize: 20),
+                      color: black, fontWeight: FontWeight.w700, fontSize: 20),
                 ),
                 Text(
                   "Fly",
@@ -234,12 +226,6 @@ class _HomePageState extends State<HomePage> {
             ),
           ),
           actions: [
-            if (!isCalling)
-              IconButton(
-                  onPressed: () {
-                    Get.to(() => const HistoryScreen());
-                  },
-                  icon: const Icon(Icons.history)),
             if (!isCalling)
               GestureDetector(
                 onTap: () async {
@@ -264,12 +250,12 @@ class _HomePageState extends State<HomePage> {
                 },
                 child: Container(
                   height: 28,
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  margin: const EdgeInsets.only(right: 16),
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  margin: const EdgeInsets.only(right: 4),
                   decoration: BoxDecoration(
-                      color: appYellow.withOpacity(0.15),
-                      borderRadius: BorderRadius.circular(4),
-                      border: Border.all(color: appYellow, width: 1.1)),
+                      color: appColor,
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: appColor, width: 1.1)),
                   child: Center(
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -278,18 +264,36 @@ class _HomePageState extends State<HomePage> {
                           return Text(
                             "₹${profileController.amount}",
                             style: TextStyle(
-                                color: blackColor,
+                                color: white,
                                 fontSize: 11,
                                 fontWeight: FontWeight.w500),
                           );
                         }),
+                        const SizedBox(width: 4),
+                        Icon(
+                          Icons.add_circle,
+                          color: white,
+                          size: 15,
+                        )
                       ],
                     ),
                   ),
                 ),
+              ),
+            if (!isCalling)
+              Builder(
+                builder: (context) => IconButton(
+                  icon: Image.asset(
+                    "assets/drawerIcon.png",
+                    width: 24,
+                    fit: BoxFit.fitWidth,
+                  ),
+                  onPressed: () => Scaffold.of(context).openDrawer(),
+                ),
               )
           ],
         ),
+        drawer: buildDrawer(width, height),
         body: isCalling
             ? Center(
                 child: Column(
@@ -333,7 +337,7 @@ class _HomePageState extends State<HomePage> {
                             icon: Icon(
                               Icons.volume_up,
                               size: 28,
-                              color: _isLoudspeakerOn ? blackColor : whiteColor,
+                              color: _isLoudspeakerOn ? black : white,
                             ),
                           ),
                         if (isCallConnected) const SizedBox(width: 10),
@@ -395,34 +399,37 @@ class _HomePageState extends State<HomePage> {
                         child: Column(
                           children: [
                             const SizedBox(height: 6),
-                            // Container(
-                            //   height: 46,
-                            //   padding: const EdgeInsets.symmetric(horizontal: 16),
-                            //   decoration: BoxDecoration(
-                            //     color: greyMedium1Color.withOpacity(0.2),
-                            //     borderRadius: BorderRadius.circular(10),
-                            //     // border: Border.all(
-                            //     //     color: blackColor.withOpacity(0.15), width: 1.1),
-                            //   ),
-                            //   child: Center(
-                            //     child: Row(
-                            //       mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            //       children: [
-                            //         Text(
-                            //           "search...",
-                            //           style: TextStyle(
-                            //               color: blackColor.withOpacity(0.5),
-                            //               fontSize: 15,
-                            //               fontWeight: FontWeight.w400),
-                            //         ),
-                            //         Icon(
-                            //           CupertinoIcons.search,
-                            //           color: blackColor.withOpacity(0.5),
-                            //         )
-                            //       ],
-                            //     ),
-                            //   ),
-                            // ),
+                            Container(
+                              height: 46,
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 16),
+                              decoration: BoxDecoration(
+                                color: white,
+                                //  color: greyMedium1Color.withOpacity(0.2),
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(
+                                    color: black.withOpacity(0.8), width: 1.1),
+                              ),
+                              child: Center(
+                                child: Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(
+                                      "search...",
+                                      style: TextStyle(
+                                          color: black.withOpacity(0.5),
+                                          fontSize: 15,
+                                          fontWeight: FontWeight.w400),
+                                    ),
+                                    Icon(
+                                      CupertinoIcons.search,
+                                      color: black.withOpacity(0.5),
+                                    )
+                                  ],
+                                ),
+                              ),
+                            ),
                             const SizedBox(height: 6),
                             Obx(() {
                               return ListView.builder(
@@ -478,15 +485,53 @@ class _HomePageState extends State<HomePage> {
                                                   children: [
                                                     CircleAvatar(
                                                       radius: 28,
-                                                      backgroundColor: appColor,
+                                                      backgroundColor: appColor
+                                                          .withOpacity(0.8),
                                                     ),
-                                                    const SizedBox(height: 6),
+                                                    const SizedBox(height: 4),
                                                     const Text(
-                                                      "0 Minutes",
+                                                      "10k Minutes",
                                                       style: TextStyle(
                                                           fontWeight:
                                                               FontWeight.w600,
                                                           fontSize: 8),
+                                                    ),
+                                                    const SizedBox(height: 2),
+                                                    Row(
+                                                      children: List.generate(5,
+                                                          (index) {
+                                                        double rating =
+                                                            (item["personalInfo"]
+                                                                        [
+                                                                        "rating"] ??
+                                                                    0.0)
+                                                                .toDouble();
+                                                        if (rating > 5) {
+                                                          rating = 5;
+                                                        }
+
+                                                        if (index <
+                                                            rating.floor()) {
+                                                          return const Icon(
+                                                              Icons.star,
+                                                              color:
+                                                                  Colors.amber,
+                                                              size: 12.5);
+                                                        } else if (index <
+                                                            rating) {
+                                                          return const Icon(
+                                                              Icons.star_half,
+                                                              color:
+                                                                  Colors.amber,
+                                                              size: 12.5);
+                                                        } else {
+                                                          return const Icon(
+                                                              Icons.star_border,
+                                                              color:
+                                                                  Colors.grey,
+                                                              size: 12.5);
+                                                        }
+                                                      }),
                                                     )
                                                   ],
                                                 ),
@@ -513,95 +558,67 @@ class _HomePageState extends State<HomePage> {
                                                                         .w500,
                                                                 fontSize: 14),
                                                           ),
-                                                          Text(
-                                                            "ONLINE",
-                                                            style: TextStyle(
-                                                                color:
-                                                                    appGreenColor,
-                                                                fontWeight:
-                                                                    FontWeight
-                                                                        .w500,
-                                                                fontSize: 12),
+                                                          Container(
+                                                            padding:
+                                                                const EdgeInsets
+                                                                    .all(4),
+                                                            decoration: BoxDecoration(
+                                                                color: white,
+                                                                borderRadius:
+                                                                    BorderRadius
+                                                                        .circular(
+                                                                            20),
+                                                                border: Border.all(
+                                                                    color: black
+                                                                        .withOpacity(
+                                                                            0.4),
+                                                                    width: 1)),
+                                                            child: const Center(
+                                                              child: Icon(
+                                                                Icons.volume_up,
+                                                                size: 18,
+                                                              ),
+                                                            ),
                                                           ),
                                                         ],
                                                       ),
                                                       Text(
-                                                        "Professional Listener",
+                                                        "${item["personalInfo"]["im"]}",
                                                         style: TextStyle(
-                                                            color: blackColor
+                                                            color: black
                                                                 .withOpacity(
                                                                     0.3),
                                                             fontWeight:
                                                                 FontWeight.w400,
                                                             fontSize: 12),
                                                       ),
+                                                      const SizedBox(height: 2),
                                                       Text(
-                                                        "Empathy, Compassion, Lonliness, ....",
+                                                        "🎓 ${List<String>.from(item["personalInfo"]["tag"]).join(", ")} ",
+                                                        overflow: TextOverflow
+                                                            .ellipsis,
+                                                        maxLines: 1, //
                                                         style: TextStyle(
-                                                            color: blackColor
+                                                            color: black
                                                                 .withOpacity(
                                                                     0.5),
                                                             fontWeight:
                                                                 FontWeight.w400,
                                                             fontSize: 12),
                                                       ),
-                                                      const SizedBox(height: 4),
-                                                      Row(
-                                                        mainAxisAlignment:
-                                                            MainAxisAlignment
-                                                                .spaceBetween,
-                                                        children: [
-                                                          Text(
-                                                            "${item["personalInfo"]["languages"][0]},${item["personalInfo"]["languages"][1]}",
-                                                            style: TextStyle(
-                                                                color: blackColor
-                                                                    .withOpacity(
-                                                                        0.5),
-                                                                fontWeight:
-                                                                    FontWeight
-                                                                        .w400,
-                                                                fontSize: 12),
-                                                          ),
-                                                          Container(
-                                                            height: 24,
-                                                            padding:
-                                                                const EdgeInsets
-                                                                    .symmetric(
-                                                                    horizontal:
-                                                                        12),
-                                                            decoration: BoxDecoration(
-                                                                color:
-                                                                    whiteColor,
-                                                                borderRadius:
-                                                                    BorderRadius
-                                                                        .circular(
-                                                                            16),
-                                                                border: Border.all(
-                                                                    color:
-                                                                        appGreenColor,
-                                                                    width:
-                                                                        1.1)),
-                                                            child: Center(
-                                                              child: Row(
-                                                                mainAxisAlignment:
-                                                                    MainAxisAlignment
-                                                                        .center,
-                                                                children: [
-                                                                  Text(
-                                                                    "★ 4.5",
-                                                                    style: TextStyle(
-                                                                        color:
-                                                                            appGreenColor,
-                                                                        fontSize:
-                                                                            11,
-                                                                        fontWeight:
-                                                                            FontWeight.w500),
-                                                                  )
-                                                                ],
-                                                              ),
-                                                            ),
-                                                          )
-                                                        ],
+                                                      const SizedBox(height: 2),
+                                                      Text(
+                                                        "🌐 ${List<String>.from(item["personalInfo"]["languages"]).join(", ")} ",
+                                                        overflow: TextOverflow
+                                                            .ellipsis,
+                                                        maxLines: 1,
+                                                        style: TextStyle(
+                                                            color: black
+                                                                .withOpacity(
+                                                                    0.5),
+                                                            fontWeight:
+                                                                FontWeight.w400,
+                                                            fontSize: 12),
                                                       ),
                                                     ],
                                                   ),
@@ -614,39 +631,56 @@ class _HomePageState extends State<HomePage> {
                                               //     MainAxisAlignment
                                               //         .spaceBetween,
                                               children: [
-                                                Container(
-                                                  height: 32,
-                                                  padding: const EdgeInsets
-                                                      .symmetric(
-                                                      horizontal: 16),
-                                                  decoration: BoxDecoration(
-                                                      color: whiteColor,
+                                                GestureDetector(
+                                                  onTap: () {
+                                                    Get.to(() => MessagesScreen(
+                                                          receiverId:
+                                                              item["_id"],
+                                                          name: item[
+                                                                  "personalInfo"]
+                                                              ["avatarName"],
+                                                        ));
+                                                  },
+                                                  child: Container(
+                                                    height: 36,
+                                                    padding: const EdgeInsets
+                                                        .symmetric(
+                                                        horizontal: 16),
+                                                    decoration: BoxDecoration(
+                                                      color: white,
                                                       borderRadius:
                                                           BorderRadius.circular(
-                                                              16),
+                                                              20),
                                                       border: Border.all(
-                                                          color: blackColor,
-                                                          width: 1.1)),
-                                                  child: Center(
-                                                    child: Row(
-                                                      mainAxisAlignment:
-                                                          MainAxisAlignment
-                                                              .center,
-                                                      children: [
-                                                        Text(
-                                                          "🔊 Play",
-                                                          style: TextStyle(
-                                                              color: blackColor,
-                                                              fontSize: 12,
-                                                              fontWeight:
-                                                                  FontWeight
-                                                                      .w600),
-                                                        )
-                                                      ],
+                                                          color: appColor,
+                                                          width: 1.2),
+                                                    ),
+                                                    child: Center(
+                                                      child: Row(
+                                                        mainAxisAlignment:
+                                                            MainAxisAlignment
+                                                                .center,
+                                                        children: [
+                                                          Icon(
+                                                            CupertinoIcons
+                                                                .chat_bubble_2,
+                                                            color: appColor,
+                                                          ),
+                                                          Text(
+                                                            " Chat ₹5/M",
+                                                            style: TextStyle(
+                                                                color: black,
+                                                                fontSize: 12,
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .w500),
+                                                          )
+                                                        ],
+                                                      ),
                                                     ),
                                                   ),
                                                 ),
-                                                const SizedBox(width: 8),
+                                                const SizedBox(width: 12),
                                                 Expanded(
                                                   child: GestureDetector(
                                                     onTap: () async {
@@ -684,7 +718,7 @@ class _HomePageState extends State<HomePage> {
                                                         color: appColor,
                                                         borderRadius:
                                                             BorderRadius
-                                                                .circular(8),
+                                                                .circular(20),
                                                         // border: Border.all(
                                                         //     color: blackColor, width: 1.1),
                                                       ),
@@ -696,13 +730,13 @@ class _HomePageState extends State<HomePage> {
                                                           children: [
                                                             Icon(
                                                               Icons.call,
-                                                              color: whiteColor,
+                                                              color: white,
+                                                              size: 20,
                                                             ),
                                                             Text(
                                                               " Call ₹2/min",
                                                               style: TextStyle(
-                                                                  color:
-                                                                      whiteColor,
+                                                                  color: white,
                                                                   fontSize: 12,
                                                                   fontWeight:
                                                                       FontWeight
@@ -714,16 +748,6 @@ class _HomePageState extends State<HomePage> {
                                                     ),
                                                   ),
                                                 ),
-                                                const SizedBox(width: 8),
-                                                IconButton(
-                                                    onPressed: () {
-                                                      Get.to(() => ChatScreen(
-                                                            receiverId:
-                                                                item["_id"],
-                                                          ));
-                                                    },
-                                                    icon: const Icon(
-                                                        Icons.message))
                                               ],
                                             )
                                           ],
@@ -738,69 +762,69 @@ class _HomePageState extends State<HomePage> {
                       ),
                     ),
                   ),
-                  Positioned(
-                      bottom: 24,
-                      left: width * 0.16,
-                      right: width * 0.16,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 10,
-                          vertical: 6,
-                        ),
-                        clipBehavior: Clip.antiAlias,
-                        decoration: ShapeDecoration(
-                          color: Colors.white,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(60),
-                          ),
-                          shadows: const [
-                            BoxShadow(
-                              color: Color(0x16000000),
-                              blurRadius: 9,
-                              offset: Offset(0, 7),
-                              spreadRadius: 0,
-                            )
-                          ],
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Container(
-                              padding: EdgeInsets.symmetric(
-                                  vertical: 8, horizontal: width * 0.11),
-                              decoration: BoxDecoration(
-                                color: appColor,
-                                borderRadius: BorderRadius.circular(28),
-                              ),
-                              child: Icon(
-                                Icons.call,
-                                color: whiteColor,
-                              ),
-                            ),
-                            InkWell(
-                              onTap: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                      builder: (context) => const Profile()),
-                                );
-                              },
-                              child: Container(
-                                padding: EdgeInsets.symmetric(
-                                    vertical: 6, horizontal: width * 0.11),
-                                decoration: BoxDecoration(
-                                  color: whiteColor,
-                                  borderRadius: BorderRadius.circular(20),
-                                ),
-                                child: Icon(
-                                  Icons.person,
-                                  color: blackColor,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      )),
+                  // Positioned(
+                  //     bottom: 24,
+                  //     left: width * 0.16,
+                  //     right: width * 0.16,
+                  //     child: Container(
+                  //       padding: const EdgeInsets.symmetric(
+                  //         horizontal: 10,
+                  //         vertical: 6,
+                  //       ),
+                  //       clipBehavior: Clip.antiAlias,
+                  //       decoration: ShapeDecoration(
+                  //         color: Colors.white,
+                  //         shape: RoundedRectangleBorder(
+                  //           borderRadius: BorderRadius.circular(60),
+                  //         ),
+                  //         shadows: const [
+                  //           BoxShadow(
+                  //             color: Color(0x16000000),
+                  //             blurRadius: 9,
+                  //             offset: Offset(0, 7),
+                  //             spreadRadius: 0,
+                  //           )
+                  //         ],
+                  //       ),
+                  //       child: Row(
+                  //         mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  //         children: [
+                  //           Container(
+                  //             padding: EdgeInsets.symmetric(
+                  //                 vertical: 8, horizontal: width * 0.11),
+                  //             decoration: BoxDecoration(
+                  //               color: appColor,
+                  //               borderRadius: BorderRadius.circular(28),
+                  //             ),
+                  //             child: Icon(
+                  //               Icons.call,
+                  //               color: whiteColor,
+                  //             ),
+                  //           ),
+                  //           InkWell(
+                  //             onTap: () {
+                  //               Navigator.push(
+                  //                 context,
+                  //                 MaterialPageRoute(
+                  //                     builder: (context) => const Profile()),
+                  //               );
+                  //             },
+                  //             child: Container(
+                  //               padding: EdgeInsets.symmetric(
+                  //                   vertical: 6, horizontal: width * 0.11),
+                  //               decoration: BoxDecoration(
+                  //                 color: whiteColor,
+                  //                 borderRadius: BorderRadius.circular(20),
+                  //               ),
+                  //               child: Icon(
+                  //                 Icons.person,
+                  //                 color: blackColor,
+                  //               ),
+                  //             ),
+                  //           ),
+                  //         ],
+                  //       ),
+                  //     )),
                   if (isLoading)
                     const Positioned(
                         top: 0,

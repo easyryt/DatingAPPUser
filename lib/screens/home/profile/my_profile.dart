@@ -30,8 +30,10 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
         if (mounted) {
           setState(() {
             _updateProfileController.name.text = data["name"] ?? "";
-            _updateProfileController.languagesController.text =
-                data["languages"][0] ?? "";
+            if (data["languages"].length != 0) {
+              _updateProfileController.languagesController.text =
+                  data["languages"][0] ?? "";
+            }
             // _updateProfileController.languagesController1.text =
             //     data["languages"][0] ?? "";
             _updateProfileController.email.text = data["email"] ?? "";

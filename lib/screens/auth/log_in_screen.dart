@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:gad_fly/constant/api_end_point.dart';
 import 'package:gad_fly/controller/main_application_controller.dart';
 import 'package:gad_fly/screens/auth/email_sign_up.dart';
-import 'package:gad_fly/screens/home/home_page.dart';
+import 'package:gad_fly/screens/bottom_navigation.dart';
 import 'package:gad_fly/widgets/elevated_button.dart';
 import 'package:gad_fly/widgets/snackbar.dart';
 import 'package:gad_fly/widgets/text_form_field.dart';
@@ -289,8 +289,8 @@ class _LogInScreenState extends State<LogInScreen> {
         //   payload: 'this is Notification',
         // );
         if (mounted) {
-          Navigator.pushReplacement(
-              context, MaterialPageRoute(builder: (_) => const HomePage()));
+          Navigator.pushReplacement(context,
+              MaterialPageRoute(builder: (_) => const MainHomeScreen()));
           snackBar(responseData['message'], context);
         }
       } else {

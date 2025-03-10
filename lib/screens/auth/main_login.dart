@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:gad_fly/controller/main_application_controller.dart';
 import 'package:gad_fly/screens/auth/email_sign_up.dart';
 import 'package:gad_fly/screens/auth/log_in_screen.dart';
-import 'package:gad_fly/screens/home/home_page.dart';
+import 'package:gad_fly/screens/bottom_navigation.dart';
 import 'package:gad_fly/widgets/elevated_button.dart';
 import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -51,9 +51,10 @@ class _MainLogInScreenState extends State<MainLogInScreen> {
     var appGreenColor = const Color(0xFF35D673);
     var greyMedium1Color = const Color(0xFFDBDBDB);
     return isLoggedIn
-        ? const HomePage()
+        ? const MainHomeScreen()
         : Scaffold(
             backgroundColor: whiteColor,
+            resizeToAvoidBottomInset: false,
             body: Stack(
               children: [
                 Container(

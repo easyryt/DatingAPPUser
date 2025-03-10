@@ -34,16 +34,13 @@ class ChatService {
   };
 
   connect(
-    context,
-    String? token,
-    Function(Map<String, dynamic>)? onMessageReceived,
     Function(MediaStream) onRemoteStream,
   ) {
     this.onRemoteStream = onRemoteStream;
     socket = IO.io(ApiEndpoints.baseUrl, <String, dynamic>{
       'transports': ['websocket'],
       'auth': {
-        'token': token,
+        'token': mainApplicationController.authToken.value,
         'userType': "User",
       },
       'autoConnect': false,
@@ -74,7 +71,16 @@ class ChatService {
       if (kDebugMode) {
         print(data);
       }
-      onMessageReceived!(data);
+      //  onMessageReceived!(data);
+      mainApplicationController.partnerList.clear();
+      if (data.containsKey('data')) {
+        final List<dynamic> noteData = data['data'];
+        List<Map<String, dynamic>> dataList =
+            noteData.map((data) => data as Map<String, dynamic>).toList();
+        mainApplicationController.partnerList.value = dataList;
+      } else {
+        throw Exception('Invalid response format: "data" field not found');
+      }
     });
 
     socket.on('wallet-update', (data) async {
@@ -184,6 +190,10 @@ class ChatService {
       'callId': currentCallId,
       'offer': {'sdp': offer.sdp, 'type': offer.type},
     });
+  }
+
+  fetchChatList() {
+    socket.emit('fetch-chat-list');
   }
 
   endCall() {

@@ -1,7 +1,12 @@
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:gad_fly/constant/api_end_point.dart';
+import 'package:gad_fly/model/all_chat_model.dart';
+import 'package:gad_fly/screens/chat.dart';
+import 'package:gad_fly/screens/home/history_screen.dart';
+import 'package:gad_fly/screens/home/home_page.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
@@ -11,6 +16,14 @@ class MainApplicationController extends GetxController {
   var pageIdx = 0.obs;
   var authToken = ''.obs;
   var partnerList = [].obs;
+  AllChatModel? allChatModel;
+
+  List<Widget> homeWidgets = [
+    const HomePage(),
+    //  const SizedBox(),
+    const ChatScreen(),
+    const HistoryScreen(),
+  ];
 
   var transactionList = [].obs;
   Future getAllTransaction() async {
@@ -37,6 +50,52 @@ class MainApplicationController extends GetxController {
       final responseData = json.decode(response.body);
       print(responseData);
       return false;
+    }
+  }
+
+  Future getAllChat() async {
+    final response = await http.get(
+      Uri.parse('${ApiEndpoints.baseUrl}/user/chatHistory/getAll'),
+      headers: {
+        'x-user-token': authToken.value,
+      },
+    );
+    if (response.statusCode == 200) {
+      final responseData = json.decode(response.body);
+      // if (data.containsKey('data')) {
+      //   final List<dynamic> noteData = data['data'];
+      //   List<Map<String, dynamic>> dataList =
+      //   noteData.map((data) => data as Map<String, dynamic>).toList();
+      //   mainApplicationController.partnerList.value = dataList;
+      // } else {
+      //   throw Exception('Invalid response format: "data" field not found');
+      // }
+      allChatModel = AllChatModel.fromJson(responseData);
+      return true;
+    } else {
+      final responseData = json.decode(response.body);
+      print(responseData);
+      return false;
+    }
+  }
+
+  Future getMessages(conversationId) async {
+    final response = await http.get(
+      Uri.parse(
+          '${ApiEndpoints.baseUrl}/user/chatHistory/messageHistory/$conversationId'),
+      headers: {
+        'x-user-token': authToken.value,
+      },
+    );
+    if (response.statusCode == 200) {
+      final responseData = json.decode(response.body);
+
+      // allChatModel = AllChatModel.fromJson(responseData);
+      return responseData;
+    } else {
+      final responseData = json.decode(response.body);
+      print(responseData);
+      return null;
     }
   }
 
