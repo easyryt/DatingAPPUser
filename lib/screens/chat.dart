@@ -203,10 +203,11 @@ class _ChatScreenState extends State<ChatScreen> {
   @override
   void initState() {
     initFunction();
-    mainApplicationController.getAllChat();
+    //  mainApplicationController.getAllChat();
 
     chatService.socket.on('chat-list', (data) {
       print(data);
+      mainApplicationController.chatList.value = data["data"];
     });
 
     super.initState();
@@ -236,8 +237,7 @@ class _ChatScreenState extends State<ChatScreen> {
               decoration: BoxDecoration(
                 color: greyMedium1Color.withOpacity(0.2),
                 borderRadius: BorderRadius.circular(10),
-                // border: Border.all(
-                //     color: blackColor.withOpacity(0.15), width: 1.1),
+                border: Border.all(color: black.withOpacity(0.6), width: 1.1),
               ),
               child: Center(
                 child: Row(
@@ -258,110 +258,201 @@ class _ChatScreenState extends State<ChatScreen> {
                 ),
               ),
             ),
-            mainApplicationController.allChatModel != null
-                ?
-                // Obx(() {
-                //         return
-                Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 10.0),
-                    child: ListView.builder(
-                        shrinkWrap: true,
-                        physics: const AlwaysScrollableScrollPhysics(),
-                        itemCount: mainApplicationController
-                            .allChatModel!.data!.length,
-                        itemBuilder: (context, index) {
-                          var item = mainApplicationController
-                              .allChatModel!.data![index];
-                          return GestureDetector(
-                            onTap: () {
-                              Get.to(() => MessagesScreen(
-                                    receiverId: item.partner!.sId!,
-                                    name: item.partner!.avatarName!,
-                                  ));
-                            },
-                            child: Container(
-                              width: width,
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 10, vertical: 8),
-                              margin: const EdgeInsets.symmetric(
-                                  horizontal: 4, vertical: 5),
-                              decoration: BoxDecoration(
-                                  color: white,
-                                  borderRadius: BorderRadius.circular(10),
-                                  boxShadow: [
-                                    BoxShadow(
-                                        color: Colors.grey.shade300,
-                                        spreadRadius: 0,
-                                        blurRadius: 0,
-                                        offset: const Offset(0, 0))
-                                  ]),
-                              child: Row(
-                                crossAxisAlignment: CrossAxisAlignment.center,
+            Obx(() {
+              return Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                child: ListView.builder(
+                    shrinkWrap: true,
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    itemCount: mainApplicationController.chatList.length,
+                    itemBuilder: (context, index) {
+                      var item = mainApplicationController.chatList[index];
+                      return GestureDetector(
+                        onTap: () {
+                          Get.to(() => MessagesScreen(
+                                receiverId: item["partner"]["_id"],
+                                name: item["partner"]["avatarName"],
+                              ));
+                        },
+                        child: Container(
+                          width: width,
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 10, vertical: 8),
+                          margin: const EdgeInsets.symmetric(
+                              horizontal: 4, vertical: 5),
+                          decoration: BoxDecoration(
+                              color: white,
+                              borderRadius: BorderRadius.circular(10),
+                              boxShadow: [
+                                BoxShadow(
+                                    color: Colors.grey.shade300,
+                                    spreadRadius: 0,
+                                    blurRadius: 0,
+                                    offset: const Offset(0, 0))
+                              ]),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              CircleAvatar(
+                                radius: 28,
+                                backgroundColor: greyMedium1Color,
+                              ),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      item["partner"]["avatarName"],
+                                      style: const TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.w600),
+                                    ),
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      item["lastMessage"]["content"],
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: const TextStyle(
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.w400),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              Column(
                                 children: [
-                                  CircleAvatar(
-                                    radius: 28,
-                                    backgroundColor: greyMedium1Color,
+                                  const SizedBox(height: 12),
+                                  Text(
+                                    formatDate(
+                                        item["lastMessage"]["createdAt"]),
+                                    style: const TextStyle(
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.w500),
                                   ),
-                                  const SizedBox(width: 10),
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          item.partner!.avatarName!,
-                                          style: const TextStyle(
-                                              fontSize: 16,
-                                              fontWeight: FontWeight.w600),
-                                        ),
-                                        const SizedBox(height: 2),
-                                        Text(
-                                          item.lastMessage!.content!,
+                                  const SizedBox(height: 4),
+                                  if (item["unreadCount"] != 0)
+                                    CircleAvatar(
+                                        radius: 11,
+                                        backgroundColor:
+                                            appColor.withOpacity(0.8),
+                                        child: Center(
+                                            child: Text(
+                                          (item["unreadCount"] > 99)
+                                              ? "99+"
+                                              : "${item["unreadCount"]}",
                                           maxLines: 1,
                                           overflow: TextOverflow.ellipsis,
-                                          style: const TextStyle(
-                                              fontSize: 14,
-                                              fontWeight: FontWeight.w400),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                  Column(
-                                    children: [
-                                      const SizedBox(height: 12),
-                                      Text(
-                                        formatDate(
-                                            item.lastMessage!.createdAt!),
-                                        style: const TextStyle(
-                                            fontSize: 11,
-                                            fontWeight: FontWeight.w500),
-                                      ),
-                                      const SizedBox(height: 4),
-                                      if (item.unreadCount != 0)
-                                        CircleAvatar(
-                                            radius: 11,
-                                            backgroundColor:
-                                                appColorP.withOpacity(0.8),
-                                            child: Center(
-                                                child: Text(
-                                              (item.unreadCount! > 99)
-                                                  ? "99+"
-                                                  : "${item.unreadCount}",
-                                              maxLines: 1,
-                                              overflow: TextOverflow.ellipsis,
-                                              style: TextStyle(
-                                                  color: white, fontSize: 10),
-                                            )))
-                                    ],
-                                  )
+                                          style: TextStyle(
+                                              color: white, fontSize: 10),
+                                        )))
                                 ],
-                              ),
-                            ),
-                          );
-                          //   });
-                        }),
-                  )
-                : Center(child: const Text("User Chat Empty")),
+                              )
+                            ],
+                          ),
+                        ),
+                      );
+                      //   });
+                    }),
+              );
+            }),
+            // Padding(
+            //   padding: const EdgeInsets.symmetric(horizontal: 10.0),
+            //   child: ListView.builder(
+            //       shrinkWrap: true,
+            //       physics: const AlwaysScrollableScrollPhysics(),
+            //       itemCount:
+            //           mainApplicationController.allChatModel!.data!.length,
+            //       itemBuilder: (context, index) {
+            //         var item =
+            //             mainApplicationController.allChatModel!.data![index];
+            //         return GestureDetector(
+            //           onTap: () {
+            //             Get.to(() => MessagesScreen(
+            //                   receiverId: item.partner!.sId!,
+            //                   name: item.partner!.avatarName!,
+            //                 ));
+            //           },
+            //           child: Container(
+            //             width: width,
+            //             padding: const EdgeInsets.symmetric(
+            //                 horizontal: 10, vertical: 8),
+            //             margin: const EdgeInsets.symmetric(
+            //                 horizontal: 4, vertical: 5),
+            //             decoration: BoxDecoration(
+            //                 color: white,
+            //                 borderRadius: BorderRadius.circular(10),
+            //                 boxShadow: [
+            //                   BoxShadow(
+            //                       color: Colors.grey.shade300,
+            //                       spreadRadius: 0,
+            //                       blurRadius: 0,
+            //                       offset: const Offset(0, 0))
+            //                 ]),
+            //             child: Row(
+            //               crossAxisAlignment: CrossAxisAlignment.center,
+            //               children: [
+            //                 CircleAvatar(
+            //                   radius: 28,
+            //                   backgroundColor: greyMedium1Color,
+            //                 ),
+            //                 const SizedBox(width: 10),
+            //                 Expanded(
+            //                   child: Column(
+            //                     crossAxisAlignment: CrossAxisAlignment.start,
+            //                     children: [
+            //                       Text(
+            //                         item.partner!.avatarName!,
+            //                         style: const TextStyle(
+            //                             fontSize: 16,
+            //                             fontWeight: FontWeight.w600),
+            //                       ),
+            //                       const SizedBox(height: 2),
+            //                       Text(
+            //                         item.lastMessage!.content!,
+            //                         maxLines: 1,
+            //                         overflow: TextOverflow.ellipsis,
+            //                         style: const TextStyle(
+            //                             fontSize: 14,
+            //                             fontWeight: FontWeight.w400),
+            //                       ),
+            //                     ],
+            //                   ),
+            //                 ),
+            //                 Column(
+            //                   children: [
+            //                     const SizedBox(height: 12),
+            //                     Text(
+            //                       formatDate(item.lastMessage!.createdAt!),
+            //                       style: const TextStyle(
+            //                           fontSize: 11,
+            //                           fontWeight: FontWeight.w500),
+            //                     ),
+            //                     const SizedBox(height: 4),
+            //                     if (item.unreadCount != 0)
+            //                       CircleAvatar(
+            //                           radius: 11,
+            //                           backgroundColor:
+            //                               appColorP.withOpacity(0.8),
+            //                           child: Center(
+            //                               child: Text(
+            //                             (item.unreadCount! > 99)
+            //                                 ? "99+"
+            //                                 : "${item.unreadCount}",
+            //                             maxLines: 1,
+            //                             overflow: TextOverflow.ellipsis,
+            //                             style: TextStyle(
+            //                                 color: white, fontSize: 10),
+            //                           )))
+            //                   ],
+            //                 )
+            //               ],
+            //             ),
+            //           ),
+            //         );
+            //         //   });
+            //       }),
+            // )
           ],
         ));
   }

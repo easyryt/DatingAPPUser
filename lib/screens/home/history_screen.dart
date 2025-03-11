@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:gad_fly/constant/color_code.dart';
 import 'package:gad_fly/controller/main_application_controller.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -34,14 +35,15 @@ class _HistoryScreenState extends State<HistoryScreen> {
       appBar: AppBar(
         backgroundColor: whiteColor,
         surfaceTintColor: whiteColor,
-        leading: IconButton(
-            onPressed: () {
-              Navigator.pop(context);
-            },
-            icon: const Icon(
-              Icons.arrow_back_ios_new,
-              size: 18,
-            )),
+        // leading: IconButton(
+        //     onPressed: () {
+        //       Navigator.pop(context);
+        //     },
+        //     icon: const Icon(
+        //       Icons.arrow_back_ios_new,
+        //       size: 18,
+        //     )),
+        automaticallyImplyLeading: false,
         title: const Text(
           'History',
           style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
@@ -122,16 +124,6 @@ class _HistoryScreenState extends State<HistoryScreen> {
                                 const SizedBox(height: 3),
                                 Row(
                                   children: [
-                                    // SizedBox(
-                                    //   child: Text("↙",
-                                    //       style: GoogleFonts.roboto(
-                                    //         textStyle: const TextStyle(
-                                    //           color: Colors.green,
-                                    //           fontSize: 15,
-                                    //           fontWeight: FontWeight.w400,
-                                    //         ),
-                                    //       )),
-                                    // ),
                                     const Icon(
                                       Icons.call_received,
                                       color: Colors.green,
@@ -145,9 +137,9 @@ class _HistoryScreenState extends State<HistoryScreen> {
                                           overflow: TextOverflow.ellipsis,
                                           style: GoogleFonts.roboto(
                                             textStyle: TextStyle(
-                                              color: greyColor.shade500,
+                                              color: greyColor.shade600,
                                               fontSize: 11.5,
-                                              fontWeight: FontWeight.w400,
+                                              fontWeight: FontWeight.w500,
                                             ),
                                           )),
                                     ),
@@ -165,10 +157,10 @@ class _HistoryScreenState extends State<HistoryScreen> {
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
                                     style: GoogleFonts.roboto(
-                                      textStyle: const TextStyle(
-                                        color: Colors.deepOrange,
+                                      textStyle: TextStyle(
+                                        color: black,
                                         fontSize: 13.5,
-                                        fontWeight: FontWeight.w500,
+                                        fontWeight: FontWeight.w700,
                                       ),
                                     )),
                               ),
@@ -179,9 +171,9 @@ class _HistoryScreenState extends State<HistoryScreen> {
                                     overflow: TextOverflow.ellipsis,
                                     style: GoogleFonts.roboto(
                                       textStyle: TextStyle(
-                                        color: greyColor.shade500,
+                                        color: greyColor.shade600,
                                         fontSize: 11.5,
-                                        fontWeight: FontWeight.w400,
+                                        fontWeight: FontWeight.w500,
                                       ),
                                     )),
                               ),

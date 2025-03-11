@@ -48,6 +48,7 @@ dependencies:
   audioplayers: ^6.1.0
   intl: ^0.20.0
   flutter_keyboard_visibility: ^6.0.0
+  chat_bubbles: ^1.7.0
 
 dev_dependencies:
   flutter_test:

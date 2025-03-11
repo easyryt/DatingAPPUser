@@ -17,6 +17,7 @@ class MainApplicationController extends GetxController {
   var authToken = ''.obs;
   var partnerList = [].obs;
   AllChatModel? allChatModel;
+  var chatList = [].obs;
 
   List<Widget> homeWidgets = [
     const HomePage(),

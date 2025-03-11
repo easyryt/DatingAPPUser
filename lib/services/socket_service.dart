@@ -52,7 +52,7 @@ class ChatService {
       if (kDebugMode) {
         print('Connected to socket.io server');
       }
-      requestPartnerList();
+      // requestPartnerList();
     });
 
     socket.on('error', (data) async {
@@ -83,6 +83,10 @@ class ChatService {
       }
     });
 
+    socket.on("toggleResponse", (data) async {
+      print(data);
+    });
+
     socket.on('wallet-update', (data) async {
       if (kDebugMode) {
         print(data);
@@ -94,9 +98,18 @@ class ChatService {
     });
 
     socket.on('answer', (data) async {
-      print('Received answer');
-      await peerConnection?.setRemoteDescription(
-          RTCSessionDescription(data["answer"]['sdp'], data["answer"]['type']));
+      // print('Received answer');
+      // await peerConnection?.setRemoteDescription(
+      //     RTCSessionDescription(data["answer"]['sdp'], data["answer"]['type']));
+      if (peerConnection?.signalingState ==
+          RTCSignalingState.RTCSignalingStateHaveLocalOffer) {
+        print('Received answer');
+        await peerConnection?.setRemoteDescription(RTCSessionDescription(
+            data["answer"]['sdp'], data["answer"]['type']));
+      } else {
+        print(
+            'Ignoring answer as peerConnection is not in HaveLocalOffer state.');
+      }
     });
 
     socket.on('ice-candidate', (data) async {
@@ -123,7 +136,7 @@ class ChatService {
     socket.disconnect();
   }
 
-  void requestPartnerList() {
+  requestPartnerList() {
     socket.emit('getListOfPartner');
   }
 
@@ -184,12 +197,23 @@ class ChatService {
     if (peerConnection == null) {
       await setupWebRTC();
     }
-    RTCSessionDescription offer = await peerConnection!.createOffer();
-    await peerConnection!.setLocalDescription(offer);
-    socket.emit('offer', {
-      'callId': currentCallId,
-      'offer': {'sdp': offer.sdp, 'type': offer.type},
-    });
+    try {
+      RTCSessionDescription offer = await peerConnection!.createOffer();
+      await peerConnection!.setLocalDescription(offer);
+
+      while (peerConnection?.signalingState !=
+          RTCSignalingState.RTCSignalingStateHaveLocalOffer) {
+        await Future.delayed(const Duration(milliseconds: 100));
+      }
+
+      socket.emit('offer', {
+        'callId': currentCallId,
+        'offer': {'sdp': offer.sdp, 'type': offer.type},
+      });
+      print("Offer sent successfully.");
+    } catch (e) {
+      print("Error creating or sending offer: $e");
+    }
   }
 
   fetchChatList() {

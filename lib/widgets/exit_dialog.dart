@@ -1,14 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:gad_fly/constant/color_code.dart';
 import 'package:gad_fly/widgets/button.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 Widget exitDialog(context) {
-  Color white = Colors.white;
-  Color black = Colors.black;
-  Color grey = Colors.grey;
-  Color appColorR = Color(0xFFFF006B);
-  Color appColorP = Color(0xFF9C0C9E);
   return Dialog(
     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
     child: Container(
@@ -46,7 +42,7 @@ Widget exitDialog(context) {
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
               button(
-                  color: appColorP,
+                  color: appColor,
                   onPressed: () {
                     SystemNavigator.pop();
                   },
