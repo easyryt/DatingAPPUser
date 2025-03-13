@@ -19,6 +19,7 @@ class _ProfileState extends State<Profile> {
 
   @override
   void initState() {
+    updateProfileController.getProfile();
     super.initState();
   }
 
@@ -59,27 +60,33 @@ class _ProfileState extends State<Profile> {
                       onTap: () {
                         Get.to(() => const MyProfileScreen());
                       },
-                      child: Column(
-                        children: [
-                          CircleAvatar(
-                            radius: 40,
-                            backgroundColor: appColor,
-                          ),
-                          SizedBox(height: 8),
-                          const Text(
-                            'Aman',
-                            style: TextStyle(
-                                fontSize: 15, fontWeight: FontWeight.w500),
-                          ),
-                          const Text(
-                            '+91 8879743489',
-                            style: TextStyle(
-                              color: Colors.grey,
-                              fontSize: 14,
+                      child: Obx(() {
+                        return Column(
+                          children: [
+                            CircleAvatar(
+                              radius: 40,
+                              backgroundColor: appColor,
                             ),
-                          ),
-                        ],
-                      ),
+                            const SizedBox(height: 8),
+                            Text(
+                              (updateProfileController.aNameS.value != "")
+                                  ? updateProfileController.aNameS.value
+                                  : "your name",
+                              style: const TextStyle(
+                                  fontSize: 15, fontWeight: FontWeight.w500),
+                            ),
+                            Text(
+                              (updateProfileController.emailS.value != "")
+                                  ? updateProfileController.emailS.value
+                                  : "your email",
+                              style: const TextStyle(
+                                color: Colors.grey,
+                                fontSize: 14,
+                              ),
+                            ),
+                          ],
+                        );
+                      }),
                     ),
                     const SizedBox(height: 12),
                     // Settings Section

@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_webrtc/flutter_webrtc.dart';
 import 'package:gad_fly/constant/color_code.dart';
 import 'package:gad_fly/controller/main_application_controller.dart';
 import 'package:gad_fly/controller/profile_controller.dart';
@@ -27,55 +26,55 @@ class _HomePageState extends State<HomePage> {
   bool isCallConnected = false;
   bool isCalling = false;
   String avtarName = '';
-  MediaStream? remoteStream;
+  // MediaStream? remoteStream;
   Duration _callDuration = Duration.zero;
   Timer? _timer;
   bool _isTimerRunning = false;
 
   ChatService chatService = ChatService();
 
-  void _startTimer() {
-    _callDuration = Duration.zero;
-    _isTimerRunning = true;
-    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      setState(() {
-        _callDuration += const Duration(seconds: 1);
-      });
-    });
-  }
+  // void _startTimer() {
+  //   _callDuration = Duration.zero;
+  //   _isTimerRunning = true;
+  //   _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+  //     setState(() {
+  //       _callDuration += const Duration(seconds: 1);
+  //     });
+  //   });
+  // }
+  //
+  // void _stopTimer() {
+  //   _timer?.cancel();
+  //   _timer = null;
+  //   _isTimerRunning = false;
+  //   _callDuration = Duration.zero;
+  // }
+  //
+  // String _formatDuration(Duration duration) {
+  //   String twoDigits(int n) => n.toString().padLeft(2, '0');
+  //   final hours = twoDigits(duration.inHours);
+  //   final minutes = twoDigits(duration.inMinutes.remainder(60));
+  //   final seconds = twoDigits(duration.inSeconds.remainder(60));
+  //   return "$hours:$minutes:$seconds";
+  // }
 
-  void _stopTimer() {
-    _timer?.cancel();
-    _timer = null;
-    _isTimerRunning = false;
-    _callDuration = Duration.zero;
-  }
+  // bool _isMuted = false;
 
-  String _formatDuration(Duration duration) {
-    String twoDigits(int n) => n.toString().padLeft(2, '0');
-    final hours = twoDigits(duration.inHours);
-    final minutes = twoDigits(duration.inMinutes.remainder(60));
-    final seconds = twoDigits(duration.inSeconds.remainder(60));
-    return "$hours:$minutes:$seconds";
-  }
-
-  bool _isMuted = false;
-
-  void _toggleMute() {
-    setState(() {
-      _isMuted = !_isMuted;
-    });
-    chatService.toggleMicrophone(_isMuted);
-  }
-
-  bool _isLoudspeakerOn = false;
-
-  void _toggleLoudspeaker() async {
-    setState(() {
-      _isLoudspeakerOn = !_isLoudspeakerOn;
-    });
-    await chatService.toggleLoudspeaker(_isLoudspeakerOn);
-  }
+  // void _toggleMute() {
+  //   setState(() {
+  //     _isMuted = !_isMuted;
+  //   });
+  //   chatService.toggleMicrophone(_isMuted);
+  // }
+  //
+  // bool _isLoudspeakerOn = false;
+  //
+  // void _toggleLoudspeaker() async {
+  //   setState(() {
+  //     _isLoudspeakerOn = !_isLoudspeakerOn;
+  //   });
+  //   await chatService.toggleLoudspeaker(_isLoudspeakerOn);
+  // }
 
   final AudioPlayer _audioPlayer = AudioPlayer();
   bool _isRinging = false;
@@ -117,13 +116,14 @@ class _HomePageState extends State<HomePage> {
   initFunction() async {
     if (mainApplicationController.authToken.value != "") {
       await chatService.connect(
-        (MediaStream stream) {
-          // setState(() {
-          //   remoteStream = stream;
-          // });
-        },
+        // (MediaStream stream) {
+        //   // setState(() {
+        //   //   remoteStream = stream;
+        //   // });
+        // },
+        (_) {},
       );
-      // await chatService.requestPartnerList();
+      await chatService.requestPartnerList();
     }
   }
 
@@ -393,6 +393,12 @@ class _HomePageState extends State<HomePage> {
                                               radius: 28,
                                               backgroundColor:
                                                   appColor.withOpacity(0.8),
+                                              backgroundImage: AssetImage((item[
+                                                              "personalInfo"]
+                                                          ["gender"] ==
+                                                      "female")
+                                                  ? "assets/womenAvatart.jpeg"
+                                                  : "assets/menAvatar.jpeg"),
                                             ),
                                             const SizedBox(height: 4),
                                             const Text(

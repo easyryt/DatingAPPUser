@@ -35,80 +35,6 @@ class _OutgoingCallScreenState extends State<OutgoingCallScreen> {
   final AudioPlayer _audioPlayer = AudioPlayer();
   bool _isRinging = false;
 
-  void _startTimer() {
-    _callDuration = Duration.zero;
-    _isTimerRunning = true;
-    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      setState(() {
-        _callDuration += const Duration(seconds: 1);
-      });
-    });
-  }
-
-  void _stopTimer() {
-    _timer?.cancel();
-    _timer = null;
-    _isTimerRunning = false;
-    _callDuration = Duration.zero;
-  }
-
-  String _formatDuration(Duration duration) {
-    String twoDigits(int n) => n.toString().padLeft(2, '0');
-    final hours = twoDigits(duration.inHours);
-    final minutes = twoDigits(duration.inMinutes.remainder(60));
-    final seconds = twoDigits(duration.inSeconds.remainder(60));
-    return "$hours:$minutes:$seconds";
-  }
-
-  void _toggleMute() {
-    setState(() {
-      _isMuted = !_isMuted;
-    });
-    chatService.toggleMicrophone(_isMuted);
-  }
-
-  void _toggleLoudspeaker() async {
-    setState(() {
-      _isLoudspeakerOn = !_isLoudspeakerOn;
-    });
-    await chatService.toggleLoudspeaker(_isLoudspeakerOn);
-  }
-
-  void _playRingingSound() async {
-    // await _audioPlayer.setReleaseMode(ReleaseMode.loop);
-    // await _audioPlayer.play(AssetSource("sound/call_ring.mp4"));
-    //
-    // setState(() {
-    //   _isRinging = true;
-    // });
-    try {
-      await _audioPlayer.setReleaseMode(ReleaseMode.loop);
-      await _audioPlayer.play(AssetSource("sound/call_ring.mp4"));
-      setState(() {
-        _isRinging = true;
-      });
-    } catch (e) {
-      print("Error playing sound: $e");
-    }
-  }
-
-  void _stopRingingSound() async {
-    // await _audioPlayer.stop();
-    // setState(() {
-    //   _isRinging = false;
-    // });
-    try {
-      if (_isRinging) {
-        await _audioPlayer.stop();
-        setState(() {
-          _isRinging = false;
-        });
-      }
-    } catch (e) {
-      print("Error stopping sound: $e");
-    }
-  }
-
   initFunction() async {
     if (mainApplicationController.authToken.value != "") {
       await chatService.connect(
@@ -143,6 +69,7 @@ class _OutgoingCallScreenState extends State<OutgoingCallScreen> {
     });
 
     chatService.socket.on('call-accepted', (_) async {
+      print("call .............accept.....................");
       await chatService.createAndSendOffer();
       if (mounted) {
         setState(() {
@@ -166,7 +93,6 @@ class _OutgoingCallScreenState extends State<OutgoingCallScreen> {
       if (mounted) {
         setState(() {
           isCallConnected = false;
-          remoteStream = null;
         });
       }
       _stopRingingSound();
@@ -176,21 +102,10 @@ class _OutgoingCallScreenState extends State<OutgoingCallScreen> {
     });
   }
 
-  void _onRequestAccepted(Map<String, dynamic> data) async {
-    mainApplicationController.partnerList.clear();
-    if (data.containsKey('data')) {
-      final List<dynamic> noteData = data['data'];
-      List<Map<String, dynamic>> dataList =
-          noteData.map((data) => data as Map<String, dynamic>).toList();
-      mainApplicationController.partnerList.value = dataList;
-    } else {
-      throw Exception('Invalid response format: "data" field not found');
-    }
-  }
-
   @override
   void dispose() {
     _stopRingingSound();
+    _audioPlayer.stop();
     _audioPlayer.dispose();
     remoteStream?.dispose();
     // chatService.disconnect();
@@ -291,5 +206,93 @@ class _OutgoingCallScreenState extends State<OutgoingCallScreen> {
         ),
       ),
     );
+  }
+
+  void _startTimer() {
+    _callDuration = Duration.zero;
+    _isTimerRunning = true;
+    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (mounted) {
+        setState(() {
+          _callDuration += const Duration(seconds: 1);
+        });
+      }
+    });
+  }
+
+  void _stopTimer() {
+    _timer?.cancel();
+    _timer = null;
+    _isTimerRunning = false;
+    _callDuration = Duration.zero;
+  }
+
+  String _formatDuration(Duration duration) {
+    String twoDigits(int n) => n.toString().padLeft(2, '0');
+    final hours = twoDigits(duration.inHours);
+    final minutes = twoDigits(duration.inMinutes.remainder(60));
+    final seconds = twoDigits(duration.inSeconds.remainder(60));
+    return "$hours:$minutes:$seconds";
+  }
+
+  void _toggleMute() {
+    setState(() {
+      _isMuted = !_isMuted;
+    });
+    chatService.toggleMicrophone(_isMuted);
+  }
+
+  void _toggleLoudspeaker() async {
+    setState(() {
+      _isLoudspeakerOn = !_isLoudspeakerOn;
+    });
+    await chatService.toggleLoudspeaker(_isLoudspeakerOn);
+  }
+
+  void _playRingingSound() async {
+    // await _audioPlayer.setReleaseMode(ReleaseMode.loop);
+    // await _audioPlayer.play(AssetSource("sound/call_ring.mp4"));
+    //
+    // setState(() {
+    //   _isRinging = true;
+    // });
+    try {
+      await _audioPlayer.setReleaseMode(ReleaseMode.loop);
+      await _audioPlayer.play(AssetSource("sound/call_ring.mp4"));
+      setState(() {
+        _isRinging = true;
+      });
+    } catch (e) {
+      print("Error playing sound: $e");
+    }
+  }
+
+  void _stopRingingSound() async {
+    // await _audioPlayer.stop();
+    // setState(() {
+    //   _isRinging = false;
+    // });
+    try {
+      if (_isRinging) {
+        await _audioPlayer.stop();
+        setState(() {
+          _isRinging = false;
+        });
+      }
+    } catch (e) {
+      print("Error stopping sound: $e");
+    }
+  }
+
+  void _onRequestAccepted(Map<String, dynamic> data) async {
+    mainApplicationController.partnerList.clear();
+    if (data.containsKey('data')) {
+      final List<dynamic> noteData = data['data'];
+      List<Map<String, dynamic>> dataList =
+          noteData.map((data) => data as Map<String, dynamic>).toList();
+      mainApplicationController.partnerList.value = dataList;
+    } else {
+      throw Exception('Invalid response format: "data" field not found');
+    }
   }
 }

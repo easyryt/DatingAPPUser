@@ -29,13 +29,15 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
         final data = profileData["data"];
         if (mounted) {
           setState(() {
-            _updateProfileController.name.text = data["name"] ?? "";
+            _updateProfileController.aName.text = data["avatarName"] ?? "";
             if (data["languages"].length != 0) {
               _updateProfileController.languagesController.text =
                   data["languages"][0] ?? "";
             }
-            // _updateProfileController.languagesController1.text =
-            //     data["languages"][0] ?? "";
+            if (data["languages"].length > 1) {
+              _updateProfileController.languagesController1.text =
+                  data["languages"][1] ?? "";
+            }
             _updateProfileController.email.text = data["email"] ?? "";
             final gender = data["gender"] ?? "";
             _updateProfileController.gender.value = (gender == "male")
@@ -169,7 +171,7 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
                                               ),
                                             )
                                           : CircleAvatar(
-                                              radius: 26,
+                                              radius: 30,
                                               backgroundColor: appColor,
                                             )),
                             );
@@ -177,30 +179,30 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
                           const SizedBox(
                             height: 6,
                           ),
-                          Center(
-                            child: InkWell(
-                              onTap: () async {
-                                await _pickImage();
-                              },
-                              child: Text(
-                                "Edit Picture",
-                                style: GoogleFonts.roboto(
-                                  fontWeight: FontWeight.w500,
-                                  fontSize: 15,
-                                  color: appColor,
-                                ),
-                              ),
-                            ),
-                          ),
+                          // Center(
+                          //   child: InkWell(
+                          //     onTap: () async {
+                          //       await _pickImage();
+                          //     },
+                          //     child: Text(
+                          //       "Edit Picture",
+                          //       style: GoogleFonts.roboto(
+                          //         fontWeight: FontWeight.w500,
+                          //         fontSize: 15,
+                          //         color: appColor,
+                          //       ),
+                          //     ),
+                          //   ),
+                          // ),
                           const SizedBox(height: 12),
                           SizedBox(
                             height: 50,
                             child: TextFormField(
-                              controller: _updateProfileController.name,
+                              controller: _updateProfileController.aName,
                               cursorColor: blackColor,
                               style: TextStyle(color: blackColor),
                               decoration: InputDecoration(
-                                labelText: "Name",
+                                labelText: "Avatar Name",
                                 labelStyle:
                                     GoogleFonts.roboto(color: blackColor),
                                 floatingLabelStyle:
@@ -608,6 +610,8 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
                                       snackPosition: SnackPosition.TOP,
                                       backgroundColor: Colors.grey.shade300);
                                   // print("Profile updated successfully");
+                                  _updateProfileController.languagesController1
+                                      .clear();
                                 } else {
                                   Get.snackbar(
                                       "Alert", "Profile updated Failed",

@@ -11,11 +11,11 @@ class ProfileController extends GetxController {
   var gender = 0.obs;
   var intersted = 0.obs;
   var imgUrl = "".obs;
-  var nameS = "".obs;
+  var aNameS = "".obs;
   var amount = 0.0.obs;
   var emailS = "".obs;
   var phoneNumberS = "".obs;
-  final name = TextEditingController();
+  final aName = TextEditingController();
   final email = TextEditingController();
   final languagesController = TextEditingController();
   final languagesController1 = TextEditingController();
@@ -33,13 +33,12 @@ class ProfileController extends GetxController {
     if (response.statusCode == 200) {
       final responseData = json.decode(response.body);
       if (responseData is Map<String, dynamic>) {
-        nameS.value = responseData["data"]["name"];
+        aNameS.value = responseData["data"]["avatarName"];
         amount.value = double.parse("${responseData["data"]["walletAmount"]}");
-        name.text = responseData["data"]["name"];
+        aName.text = responseData["data"]["avatarName"];
         emailS.value = responseData["data"]["email"];
         email.text = responseData["data"]["email"];
-        // phoneNumberS.value = responseData["data"]["phone"] ?? "";
-        // languagesController.text = responseData["data"]["phone"] ?? "";
+        //   phoneNumberS.value = responseData["data"]["phone"] ?? "";
         return responseData;
       } else {
         print("Error: Invalid response format");
@@ -60,7 +59,7 @@ class ProfileController extends GetxController {
       request.headers['x-user-token'] =
           mainApplicationController.authToken.value;
 
-      request.fields['name'] = name.text;
+      request.fields['name'] = aName.text;
       request.fields['email'] = email.text;
       final languages = [languagesController.text, languagesController1.text];
 

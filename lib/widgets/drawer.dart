@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:gad_fly/constant/color_code.dart';
+import 'package:gad_fly/controller/profile_controller.dart';
 import 'package:gad_fly/screens/auth/main_login.dart';
 import 'package:gad_fly/screens/home/profile/profile.dart';
 import 'package:get/get.dart';
@@ -7,8 +8,8 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 Drawer buildDrawer(double width, double height) {
-  // final ProfileController updateProfileController =
-  //     Get.put(ProfileController());
+  final ProfileController updateProfileController =
+      Get.put(ProfileController());
   // if (Global.storageServices.getString("imageUrl") != null) {
   //   updateProfileController.imgUrl.value =
   //       Global.storageServices.getString("imageUrl")!;
@@ -77,35 +78,35 @@ Drawer buildDrawer(double width, double height) {
                       const SizedBox(
                         width: 6,
                       ),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                              // (updateProfileController.nameS.value != "")
-                              //     ? updateProfileController.nameS.value
-                              //     :
-                              "Your Name",
-                              style: GoogleFonts.roboto(
-                                textStyle: TextStyle(
-                                  color: white,
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              )),
-                          Text(
-                              // (updateProfileController.emailS.value != "")
-                              //     ? updateProfileController.emailS.value
-                              //     :
-                              "email here",
-                              style: GoogleFonts.roboto(
-                                textStyle: const TextStyle(
-                                  color: Colors.grey,
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w400,
-                                ),
-                              )),
-                        ],
-                      )
+                      Obx(() {
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                                (updateProfileController.aNameS.value != "")
+                                    ? updateProfileController.aNameS.value
+                                    : "your name",
+                                style: GoogleFonts.roboto(
+                                  textStyle: TextStyle(
+                                    color: white,
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                )),
+                            Text(
+                                (updateProfileController.emailS.value != "")
+                                    ? updateProfileController.emailS.value
+                                    : "your email",
+                                style: GoogleFonts.roboto(
+                                  textStyle: const TextStyle(
+                                    color: Colors.grey,
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w400,
+                                  ),
+                                )),
+                          ],
+                        );
+                      }),
                     ],
                   ),
                 )

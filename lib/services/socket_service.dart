@@ -30,6 +30,11 @@ class ChatService {
         'username': 'ef8M6WFNY9LISR2PA9',
         'credential': 'GOKTdvE3sYZQ6NRm',
       },
+      {
+        'urls': 'turn:relay1.expressturn.com:3478',
+        'username': 'efR4AAMWMYPFT40U65',
+        'credential': 'bLSEHxZk2rbABCG8',
+      },
     ]
   };
 
@@ -96,20 +101,30 @@ class ChatService {
             double.parse("${data["walletAmount"]}");
       }
     });
+    socket.on('join-room', (data) async {
+      if (kDebugMode) {
+        print(data);
+      }
+    });
+    socket.on('chat-list-update', (data) async {
+      if (kDebugMode) {
+        print(data);
+      }
+    });
 
     socket.on('answer', (data) async {
-      // print('Received answer');
-      // await peerConnection?.setRemoteDescription(
-      //     RTCSessionDescription(data["answer"]['sdp'], data["answer"]['type']));
-      if (peerConnection?.signalingState ==
-          RTCSignalingState.RTCSignalingStateHaveLocalOffer) {
-        print('Received answer');
-        await peerConnection?.setRemoteDescription(RTCSessionDescription(
-            data["answer"]['sdp'], data["answer"]['type']));
-      } else {
-        print(
-            'Ignoring answer as peerConnection is not in HaveLocalOffer state.');
-      }
+      print('Received........... answer...............');
+      await peerConnection?.setRemoteDescription(
+          RTCSessionDescription(data["answer"]['sdp'], data["answer"]['type']));
+      // if (peerConnection?.signalingState ==
+      //     RTCSignalingState.RTCSignalingStateHaveLocalOffer) {
+      //   print('Received answer');
+      //   await peerConnection?.setRemoteDescription(RTCSessionDescription(
+      //       data["answer"]['sdp'], data["answer"]['type']));
+      // } else {
+      //   print(
+      //       'Ignoring answer as peerConnection is not in HaveLocalOffer state.');
+      // }
     });
 
     socket.on('ice-candidate', (data) async {
@@ -164,14 +179,32 @@ class ChatService {
   Future<void> setupWebRTC() async {
     try {
       await endCalls();
-      localStream = await webrtc.navigator.mediaDevices.getUserMedia({
-        'audio': true, // Request audio only
-        'video': false,
+      peerConnection = await createPeerConnection(configuration);
+
+      await peerConnection!.setConfiguration({
+        'iceTransportPolicy': 'all',
+        'bundlePolicy': 'max-bundle',
+        'rtcpMuxPolicy': 'require',
+        'audioJitterBufferMaxPackets': 100,
+        'audioJitterBufferFastAccelerate': true,
       });
 
+      final mediaConstraints = {
+        'audio': true,
+        'video': false,
+      };
+
+      localStream =
+          await webrtc.navigator.mediaDevices.getUserMedia(mediaConstraints);
+      if (localStream == null) {
+        print('⚠️ Failed to get local ........... stream................');
+        return;
+      }
       localAudioTrack = localStream!.getAudioTracks().first;
 
-      peerConnection = await createPeerConnection(configuration);
+      //  peerConnection = await createPeerConnection(configuration);
+
+      // peerConnection!.addStream(localStream!);
 
       localStream?.getAudioTracks().forEach((track) {
         peerConnection?.addTrack(track, localStream!);
@@ -191,29 +224,56 @@ class ChatService {
       print("Error getting user media: $e");
       return;
     }
+    // try {
+    //   await endCalls();
+    //   localStream = await webrtc.navigator.mediaDevices.getUserMedia({
+    //     'audio': true, // Request audio only
+    //     'video': false,
+    //   });
+    //
+    //   localAudioTrack = localStream!.getAudioTracks().first;
+    //
+    //   peerConnection = await createPeerConnection(configuration);
+    //
+    //   localStream?.getAudioTracks().forEach((track) {
+    //     peerConnection?.addTrack(track, localStream!);
+    //   });
+    //
+    //   peerConnection?.onTrack = (event) {
+    //     if (event.track.kind == 'audio' && event.streams.isNotEmpty) {
+    //       onRemoteStream?.call(event.streams.first);
+    //     }
+    //   };
+    //
+    //   peerConnection?.onIceCandidate = (candidate) {
+    //     socket.emit('ice-candidate',
+    //         {'callId': currentCallId, 'candidate': candidate.toMap()});
+    //   };
+    // } catch (e) {
+    //   print("Error getting user media: $e");
+    //   return;
+    // }
   }
 
   Future<void> createAndSendOffer() async {
     if (peerConnection == null) {
       await setupWebRTC();
     }
-    try {
-      RTCSessionDescription offer = await peerConnection!.createOffer();
-      await peerConnection!.setLocalDescription(offer);
 
-      while (peerConnection?.signalingState !=
-          RTCSignalingState.RTCSignalingStateHaveLocalOffer) {
-        await Future.delayed(const Duration(milliseconds: 100));
-      }
+    RTCSessionDescription offer = await peerConnection!.createOffer();
+    await peerConnection!.setLocalDescription(offer);
 
-      socket.emit('offer', {
-        'callId': currentCallId,
-        'offer': {'sdp': offer.sdp, 'type': offer.type},
-      });
-      print("Offer sent successfully.");
-    } catch (e) {
-      print("Error creating or sending offer: $e");
-    }
+    // while (peerConnection?.signalingState !=
+    //     RTCSignalingState.RTCSignalingStateHaveLocalOffer) {
+    //   await Future.delayed(const Duration(milliseconds: 100));
+    // }
+
+    socket.emit('offer', {
+      'callId': currentCallId,
+      'offer': {'sdp': offer.sdp, 'type': offer.type},
+    });
+    print(
+        "Offer sent successfully...............|||||||||||......................");
   }
 
   fetchChatList() {
