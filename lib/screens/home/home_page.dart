@@ -1,12 +1,10 @@
-import 'dart:async';
-
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:gad_fly/constant/color_code.dart';
 import 'package:gad_fly/controller/main_application_controller.dart';
 import 'package:gad_fly/controller/profile_controller.dart';
-import 'package:gad_fly/screens/home/outgoing_call.dart';
+import 'package:gad_fly/screens/agora_call_screen.dart';
 import 'package:gad_fly/screens/messages_screen.dart';
 import 'package:gad_fly/services/socket_service.dart';
 import 'package:gad_fly/widgets/drawer.dart';
@@ -26,75 +24,11 @@ class _HomePageState extends State<HomePage> {
   bool isCallConnected = false;
   bool isCalling = false;
   String avtarName = '';
-  // MediaStream? remoteStream;
-  Duration _callDuration = Duration.zero;
-  Timer? _timer;
-  bool _isTimerRunning = false;
 
   ChatService chatService = ChatService();
 
-  // void _startTimer() {
-  //   _callDuration = Duration.zero;
-  //   _isTimerRunning = true;
-  //   _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
-  //     setState(() {
-  //       _callDuration += const Duration(seconds: 1);
-  //     });
-  //   });
-  // }
-  //
-  // void _stopTimer() {
-  //   _timer?.cancel();
-  //   _timer = null;
-  //   _isTimerRunning = false;
-  //   _callDuration = Duration.zero;
-  // }
-  //
-  // String _formatDuration(Duration duration) {
-  //   String twoDigits(int n) => n.toString().padLeft(2, '0');
-  //   final hours = twoDigits(duration.inHours);
-  //   final minutes = twoDigits(duration.inMinutes.remainder(60));
-  //   final seconds = twoDigits(duration.inSeconds.remainder(60));
-  //   return "$hours:$minutes:$seconds";
-  // }
-
-  // bool _isMuted = false;
-
-  // void _toggleMute() {
-  //   setState(() {
-  //     _isMuted = !_isMuted;
-  //   });
-  //   chatService.toggleMicrophone(_isMuted);
-  // }
-  //
-  // bool _isLoudspeakerOn = false;
-  //
-  // void _toggleLoudspeaker() async {
-  //   setState(() {
-  //     _isLoudspeakerOn = !_isLoudspeakerOn;
-  //   });
-  //   await chatService.toggleLoudspeaker(_isLoudspeakerOn);
-  // }
-
   final AudioPlayer _audioPlayer = AudioPlayer();
-  bool _isRinging = false;
   String? _currentlyPlayingUrl;
-
-  // void _playRingingSound() async {
-  //   await _audioPlayer.setReleaseMode(ReleaseMode.loop);
-  //   await _audioPlayer.play(AssetSource("sound/call_ring.mp4"));
-  //
-  //   setState(() {
-  //     _isRinging = true;
-  //   });
-  // }
-  //
-  // void _stopRingingSound() async {
-  //   await _audioPlayer.stop();
-  //   setState(() {
-  //     _isRinging = false;
-  //   });
-  // }
 
   void _toggleAudio(String url) async {
     if (_currentlyPlayingUrl == url) {
@@ -136,64 +70,24 @@ class _HomePageState extends State<HomePage> {
     mainApplicationController.getAllChat();
     mainApplicationController.getTransaction();
     mainApplicationController.getAllTransaction();
-    // chatService.socket.on('call-initiated', (data) async {
-    //   chatService.currentCallId = data['callId'];
-    //   print('Call initiated with ID: ${data['callId']}');
-    //   _playRingingSound();
-    // });
-    //
-    // chatService.socket.on('call-accepted', (_) async {
-    //   await chatService.createAndSendOffer();
-    //   setState(() {
-    //     isCallConnected = true;
-    //   });
-    //   _stopRingingSound();
-    //   _startTimer();
-    // });
-    //
-    // chatService.socket.on('call-rejected', (_) {
-    //   setState(() {
-    //     isCalling = false;
-    //     isCallConnected = false;
-    //   });
-    //   _stopRingingSound();
-    //   _stopTimer();
-    // });
-    //
-    // chatService.socket.on('call-ended', (_) {
-    //   if(mounted){
-    //     setState(() {
-    //       isCalling = false;
-    //       isCallConnected = false;
-    //       remoteStream = null;
-    //     });
-    //   }
-    //   _stopRingingSound();
-    //   chatService.endCalls();
-    //   _stopTimer();
-    // });
     super.initState();
   }
 
-  void _onRequestAccepted(Map<String, dynamic> data) async {
-    mainApplicationController.partnerList.clear();
-    if (data.containsKey('data')) {
-      final List<dynamic> noteData = data['data'];
-      List<Map<String, dynamic>> dataList =
-          noteData.map((data) => data as Map<String, dynamic>).toList();
-      mainApplicationController.partnerList.value = dataList;
-    } else {
-      throw Exception('Invalid response format: "data" field not found');
-    }
-  }
+  // void _onRequestAccepted(Map<String, dynamic> data) async {
+  //   // mainApplicationController.partnerList.clear();
+  //   // if (data.containsKey('data')) {
+  //   //   final List<dynamic> noteData = data['data'];
+  //   //   List<Map<String, dynamic>> dataList =
+  //   //       noteData.map((data) => data as Map<String, dynamic>).toList();
+  //   //   mainApplicationController.partnerList.value = dataList;
+  //   // } else {
+  //   //   throw Exception('Invalid response format: "data" field not found');
+  //   // }
+  // }
 
   @override
   void dispose() {
     _audioPlayer.stop();
-    //  _audioPlayer.dispose();
-    // remoteStream?.dispose();
-    // chatService.disconnect();
-    // _stopTimer();
     super.dispose();
   }
 
@@ -315,7 +209,6 @@ class _HomePageState extends State<HomePage> {
                       padding: const EdgeInsets.symmetric(horizontal: 16),
                       decoration: BoxDecoration(
                         color: white,
-                        //  color: greyMedium1Color.withOpacity(0.2),
                         borderRadius: BorderRadius.circular(8),
                         border: Border.all(
                             color: black.withOpacity(0.8), width: 1.1),
@@ -612,8 +505,9 @@ class _HomePageState extends State<HomePage> {
                                                   context,
                                                   MaterialPageRoute(
                                                       builder: (_) =>
-                                                          OutgoingCallScreen(
-                                                            id: item["_id"],
+                                                          UserCallScreen(
+                                                            partnerId:
+                                                                item["_id"],
                                                             name: item[
                                                                     "personalInfo"]
                                                                 ["avatarName"],

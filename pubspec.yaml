@@ -49,6 +49,7 @@ dependencies:
   intl: ^0.20.0
   flutter_keyboard_visibility: ^6.0.0
   chat_bubbles: ^1.7.0
+  agora_rtc_engine: ^6.5.0
 
 dev_dependencies:
   flutter_test:

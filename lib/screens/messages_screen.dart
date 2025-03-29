@@ -4,7 +4,6 @@ import 'package:gad_fly/constant/color_code.dart';
 import 'package:gad_fly/controller/chat_controller.dart';
 import 'package:gad_fly/controller/main_application_controller.dart';
 import 'package:gad_fly/model/messages_model.dart';
-import 'package:gad_fly/screens/home/outgoing_call.dart';
 import 'package:gad_fly/services/socket_service.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -200,13 +199,13 @@ class _MessagesScreenState extends State<MessagesScreen> {
           actions: [
             IconButton(
                 onPressed: () {
-                  Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (_) => OutgoingCallScreen(
-                                id: widget.receiverId,
-                                name: widget.name,
-                              )));
+                  // Navigator.push(
+                  //     context,
+                  //     MaterialPageRoute(
+                  //         builder: (_) => OutgoingCallScreen(
+                  //               id: widget.receiverId,
+                  //               name: widget.name,
+                  //             )));
                 },
                 icon: const Icon(
                   Icons.call,

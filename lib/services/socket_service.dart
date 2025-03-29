@@ -57,7 +57,6 @@ class ChatService {
       if (kDebugMode) {
         print('Connected to socket.io server');
       }
-      // requestPartnerList();
     });
 
     socket.on('error', (data) async {

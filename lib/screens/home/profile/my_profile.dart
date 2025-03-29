@@ -609,7 +609,6 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
                                       "wow", "Profile updated successfully",
                                       snackPosition: SnackPosition.TOP,
                                       backgroundColor: Colors.grey.shade300);
-                                  // print("Profile updated successfully");
                                   _updateProfileController.languagesController1
                                       .clear();
                                 } else {
