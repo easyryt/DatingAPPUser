@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:agora_rtc_engine/agora_rtc_engine.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:gad_fly/controller/main_application_controller.dart';
 import 'package:gad_fly/services/socket_service.dart';
 import 'package:get/get.dart';
@@ -39,22 +39,54 @@ class AgoraCallService extends GetxController {
       );
     }
 
+    chatService.socket.on('call-initiated', (data) async {
+      if (kDebugMode) {
+        print(
+            'Incoming call from......................................: $data');
+      }
+      isRinging.value = true;
+      agoraToken.value = data["token"];
+      channelName.value = data["channelName"];
+    });
+
     chatService.socket.on('call-accepted', (data) {
       isStopRinging.value = true;
       joinCall(agoraToken.value, data['channelName'], data["callerId"]);
     });
-    chatService.socket.on('call-ended', (data) {
-      engine.leaveChannel();
+
+    chatService.socket.on('call-ended', (data) async {
+      await engine.leaveChannel();
       isJoined.value = false;
       _stopCallTimer();
       Get.back();
     });
 
-    chatService.socket.on('call-initiated', (data) async {
-      print('Incoming call from: $data');
-      isRinging.value = true;
-      agoraToken.value = data["token"];
-      channelName.value = data["channelName"];
+    chatService.socket.on('call-rejected', (data) async {
+      if (kDebugMode) {
+        print(
+            "$data ......................../////////////////////.......////////....////////.///////");
+      }
+      //  await engine.leaveChannel();
+      // Get.snackbar("Busy", "busy on another call.",
+      //     snackPosition: SnackPosition.TOP);
+      // isJoined.value = false;
+      // Get.back();
+      if (isJoined.value) {
+        await engine.leaveChannel();
+        isJoined.value = false;
+        _stopCallTimer();
+      }
+
+      isRinging.value = false;
+      isStopRinging.value = true;
+
+      Get.back();
+      Get.snackbar(
+        "Call Disconnect",
+        "Partner is busy on another call",
+        snackPosition: SnackPosition.TOP,
+        duration: Duration(seconds: 2),
+      );
     });
   }
 
@@ -79,7 +111,7 @@ class AgoraCallService extends GetxController {
 
     engine.registerEventHandler(RtcEngineEventHandler(
       onJoinChannelSuccess: (RtcConnection connection, int elapsed) {
-        print("Joined channel successfully");
+        print("Joined channel................ successfully");
         isJoined.value = true;
       },
       onError: (ErrorCodeType err, String msg) {
@@ -87,11 +119,15 @@ class AgoraCallService extends GetxController {
       },
       onUserJoined: (RtcConnection connection, int remoteUid, int elapsed) {
         remoteUserId.value = remoteUid.toString();
-        print("Remote user joined: $remoteUid");
+        print("Remote user......... joined: $remoteUid");
+      },
+      onLeaveChannel: (RtcConnection connection, RtcStats stats) {
+        print(
+            "Call properly left,,,,,,,,, connection: ${connection.channelId}");
       },
       onUserOffline: (RtcConnection connection, int remoteUid,
           UserOfflineReasonType reason) {
-        print("Remote user offline: $remoteUid");
+        print("Remote user offline: ,,,,,,,,,, $remoteUid");
         remoteUserId.value = '';
       },
       onTokenPrivilegeWillExpire: (RtcConnection connection, String token) {
@@ -142,13 +178,14 @@ class AgoraCallService extends GetxController {
         ),
         userAccount: userId,
       );
+      isJoined.value = true;
       _startCallTimer();
     } catch (e) {
       print("Join Channel Error: $e");
     }
   }
 
-  void endCall(channelName) {
+  endCall(channelName) {
     chatService.socket.emit('end-call', {'channelName': channelName});
   }
 

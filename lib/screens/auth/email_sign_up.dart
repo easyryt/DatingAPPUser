@@ -32,8 +32,8 @@ class _EmailSignUpScreenState extends State<EmailSignUpScreen> {
     var whiteColor = Colors.white;
     var blackColor = Colors.black;
     var appColor = const Color(0xFF8CA6DB);
-    var appGreenColor = const Color(0xFF35D673);
-    var greyMedium1Color = const Color(0xFFDBDBDB);
+    // var appGreenColor = const Color(0xFF35D673);
+    // var greyMedium1Color = const Color(0xFFDBDBDB);
     return Scaffold(
       backgroundColor: whiteColor,
       body: Container(

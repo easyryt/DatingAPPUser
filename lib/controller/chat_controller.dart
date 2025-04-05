@@ -48,6 +48,8 @@
 //   }
 // }
 
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -55,6 +57,9 @@ class ChatController extends GetxController {
   var messages = <Message>[].obs;
   var isTyping = false.obs;
   var conversationId = "".obs;
+  var lastMessageCost = ''.obs;
+  var lastMessageId = ''.obs;
+  Timer? costTimer;
 
   final TextEditingController messageController = TextEditingController();
 }

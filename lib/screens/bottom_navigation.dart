@@ -18,7 +18,7 @@ class _MainHomeScreenState extends State<MainHomeScreen> {
   // final _advancedDrawerController = AdvancedDrawerController();
   @override
   Widget build(BuildContext context) {
-    Size size = MediaQuery.of(context).size;
+    // Size size = MediaQuery.of(context).size;
 
     return WillPopScope(
       onWillPop: () async {

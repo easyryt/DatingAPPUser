@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:gad_fly/screens/auth/main_login.dart';
+import 'package:gad_fly/screens/auth/registration_page.dart';
 import 'package:get/get.dart';
 
 void main() {
@@ -18,7 +18,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         useMaterial3: true,
       ),
-      home: const MainLogInScreen(),
+      home: const RegisterScreen(),
     );
   }
 }

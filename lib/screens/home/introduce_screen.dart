@@ -10,12 +10,12 @@ class IntroScreen extends StatefulWidget {
 class _IntroScreenState extends State<IntroScreen> {
   @override
   Widget build(BuildContext context) {
-    var height = MediaQuery.of(context).size.height;
+    // var height = MediaQuery.of(context).size.height;
     var width = MediaQuery.of(context).size.width;
     var whiteColor = Colors.white;
-    var blackColor = Colors.black;
+    // var blackColor = Colors.black;
     var appColor = const Color(0xFF8CA6DB);
-    var appYellow = const Color(0xFFFFE30F);
+    // var appYellow = const Color(0xFFFFE30F);
     var appGreenColor = const Color(0xFF35D673);
     var greyMedium1Color = const Color(0xFFDBDBDB);
     return Scaffold(

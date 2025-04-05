@@ -34,7 +34,7 @@ class _LogInScreenState extends State<LogInScreen> {
     var whiteColor = Colors.white;
     var blackColor = Colors.black;
     var appColor = const Color(0xFF8CA6DB);
-    var appGreenColor = const Color(0xFF35D673);
+    // var appGreenColor = const Color(0xFF35D673);
     return
         // isLoggedIn
         //   ? const MainHomeScreen()

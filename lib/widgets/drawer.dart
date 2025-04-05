@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:gad_fly/constant/color_code.dart';
 import 'package:gad_fly/controller/profile_controller.dart';
-import 'package:gad_fly/screens/auth/main_login.dart';
-import 'package:gad_fly/screens/home/profile/profile.dart';
+import 'package:gad_fly/screens/auth/registration_page.dart';
+import 'package:gad_fly/screens/home/profile/my_profile.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -10,20 +10,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 Drawer buildDrawer(double width, double height) {
   final ProfileController updateProfileController =
       Get.put(ProfileController());
-  // if (Global.storageServices.getString("imageUrl") != null) {
-  //   updateProfileController.imgUrl.value =
-  //       Global.storageServices.getString("imageUrl")!;
-  // }
-  // if (Global.storageServices.getString("name") != null &&
-  //     Global.storageServices.getString("name") != "") {
-  //   updateProfileController.nameS.value =
-  //       Global.storageServices.getString("name")!;
-  // }
-  // if (Global.storageServices.getString("email") != null &&
-  //     Global.storageServices.getString("email") != "") {
-  //   updateProfileController.emailS.value =
-  //       Global.storageServices.getString("email")!;
-  // }
   return Drawer(
     child: Container(
       clipBehavior: Clip.antiAlias,
@@ -50,7 +36,7 @@ Drawer buildDrawer(double width, double height) {
               children: [
                 GestureDetector(
                   onTap: () {
-                    Get.to(() => const Profile());
+                    Get.to(() => const MyProfileScreen());
                   },
                   child: Row(
                     children: [
@@ -72,7 +58,7 @@ Drawer buildDrawer(double width, double height) {
                               //         ),
                               //       )
                               //     :
-                              Icon(Icons.person),
+                              const Icon(Icons.person),
                         ),
                       ),
                       const SizedBox(
@@ -94,12 +80,13 @@ Drawer buildDrawer(double width, double height) {
                                   ),
                                 )),
                             Text(
-                                (updateProfileController.emailS.value != "")
-                                    ? updateProfileController.emailS.value
-                                    : "your email",
+                                (updateProfileController.phoneNumberS.value !=
+                                        "")
+                                    ? updateProfileController.phoneNumberS.value
+                                    : "Your Number",
                                 style: GoogleFonts.roboto(
-                                  textStyle: const TextStyle(
-                                    color: Colors.grey,
+                                  textStyle: TextStyle(
+                                    color: Colors.grey.shade400,
                                     fontSize: 12,
                                     fontWeight: FontWeight.w400,
                                   ),
@@ -145,7 +132,7 @@ Drawer buildDrawer(double width, double height) {
                       SharedPreferences prefs =
                           await SharedPreferences.getInstance();
                       await prefs.clear();
-                      Get.to(() => const MainLogInScreen());
+                      Get.to(() => const RegisterScreen());
                     },
                     child: _buildSettingsOption(Icons.logout, 'Logout')),
               ],
@@ -176,12 +163,12 @@ Widget _buildSettingsOption(IconData icon, String title, [String? subtitle]) {
       ],
     ),
   );
-  ListTile(
-    leading: Icon(icon, color: Colors.black54),
-    title: Text(title, style: const TextStyle(fontSize: 16)),
-    subtitle: subtitle != null
-        ? Text(subtitle, style: const TextStyle(color: Colors.grey))
-        : null,
-    onTap: () {},
-  );
+  // ListTile(
+  //   leading: Icon(icon, color: Colors.black54),
+  //   title: Text(title, style: const TextStyle(fontSize: 16)),
+  //   subtitle: subtitle != null
+  //       ? Text(subtitle, style: const TextStyle(color: Colors.grey))
+  //       : null,
+  //   onTap: () {},
+  // );
 }

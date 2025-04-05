@@ -53,7 +53,8 @@ class ChatService {
 
     socket.connect();
 
-    socket.onConnect((_) {
+    socket.onConnect((_) async {
+      await requestPartnerList();
       if (kDebugMode) {
         print('Connected to socket.io server');
       }
@@ -88,7 +89,9 @@ class ChatService {
     });
 
     socket.on("toggleResponse", (data) async {
-      print(data);
+      if (kDebugMode) {
+        print(data);
+      }
     });
 
     socket.on('wallet-update', (data) async {
@@ -105,6 +108,11 @@ class ChatService {
         print(data);
       }
     });
+    socket.on('is_busy', (data) async {
+      if (kDebugMode) {
+        print(data);
+      }
+    });
     socket.on('chat-list-update', (data) async {
       if (kDebugMode) {
         print(data);
@@ -112,7 +120,9 @@ class ChatService {
     });
 
     socket.on('answer', (data) async {
-      print('Received........... answer...............');
+      if (kDebugMode) {
+        print('Received........... answer...............');
+      }
       await peerConnection?.setRemoteDescription(
           RTCSessionDescription(data["answer"]['sdp'], data["answer"]['type']));
       // if (peerConnection?.signalingState ==
@@ -127,7 +137,9 @@ class ChatService {
     });
 
     socket.on('ice-candidate', (data) async {
-      print('Received ICE candidate');
+      if (kDebugMode) {
+        print('Received ICE candidate');
+      }
       await peerConnection?.addCandidate(
         RTCIceCandidate(data['candidate']['candidate'],
             data['candidate']['sdpMid'], data['candidate']['sdpMLineIndex']),
@@ -135,7 +147,9 @@ class ChatService {
     });
 
     socket.on('call-ended', (_) {
-      print('Call ended');
+      if (kDebugMode) {
+        print('Call ended');
+      }
       endCalls();
     });
 
@@ -163,9 +177,13 @@ class ChatService {
     try {
       await webrtc.Helper.setSpeakerphoneOn(isLoudspeakerOn);
       _isLoudspeakerOn = isLoudspeakerOn;
-      print('Loudspeaker is ${isLoudspeakerOn ? 'ON' : 'OFF'}');
+      if (kDebugMode) {
+        print('Loudspeaker is ${isLoudspeakerOn ? 'ON' : 'OFF'}');
+      }
     } catch (e) {
-      print('Error toggling loudspeaker: $e');
+      if (kDebugMode) {
+        print('Error toggling loudspeaker: $e');
+      }
     }
   }
 
@@ -196,7 +214,9 @@ class ChatService {
       localStream =
           await webrtc.navigator.mediaDevices.getUserMedia(mediaConstraints);
       if (localStream == null) {
-        print('⚠️ Failed to get local ........... stream................');
+        if (kDebugMode) {
+          print('⚠️ Failed to get local ........... stream................');
+        }
         return;
       }
       localAudioTrack = localStream!.getAudioTracks().first;
@@ -220,7 +240,9 @@ class ChatService {
             {'callId': currentCallId, 'candidate': candidate.toMap()});
       };
     } catch (e) {
-      print("Error getting user media: $e");
+      if (kDebugMode) {
+        print("Error getting user media: $e");
+      }
       return;
     }
     // try {
@@ -271,8 +293,10 @@ class ChatService {
       'callId': currentCallId,
       'offer': {'sdp': offer.sdp, 'type': offer.type},
     });
-    print(
+    if (kDebugMode) {
+      print(
         "Offer sent successfully...............|||||||||||......................");
+    }
   }
 
   fetchChatList() {

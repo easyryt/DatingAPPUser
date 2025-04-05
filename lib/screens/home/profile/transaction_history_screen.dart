@@ -1,21 +1,21 @@
 import 'package:flutter/material.dart';
-import 'package:gad_fly/constant/color_code.dart';
 import 'package:gad_fly/controller/main_application_controller.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-class CallHistoryScreen extends StatefulWidget {
-  const CallHistoryScreen({super.key});
+class TransactionHistoryScreen extends StatefulWidget {
+  const TransactionHistoryScreen({super.key});
 
   @override
-  State<CallHistoryScreen> createState() => _CallHistoryScreenState();
+  State<TransactionHistoryScreen> createState() =>
+      _TransactionHistoryScreenState();
 }
 
-class _CallHistoryScreenState extends State<CallHistoryScreen> {
+class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
   MainApplicationController mainApplicationController = Get.find();
   @override
   void initState() {
-    mainApplicationController.getAllCallHistory();
+    mainApplicationController.getTransaction();
     super.initState();
   }
 
@@ -35,17 +35,17 @@ class _CallHistoryScreenState extends State<CallHistoryScreen> {
       appBar: AppBar(
         backgroundColor: whiteColor,
         surfaceTintColor: whiteColor,
-        // leading: IconButton(
-        //     onPressed: () {
-        //       Navigator.pop(context);
-        //     },
-        //     icon: const Icon(
-        //       Icons.arrow_back_ios_new,
-        //       size: 18,
-        //     )),
+        leading: IconButton(
+            onPressed: () {
+              Navigator.pop(context);
+            },
+            icon: const Icon(
+              Icons.arrow_back_ios_new,
+              size: 18,
+            )),
         automaticallyImplyLeading: false,
         title: const Text(
-          'History',
+          'Payment History',
           style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
         ),
         // actions: const [Icon(Icons.info_outline), SizedBox(width: 16)],
@@ -54,31 +54,21 @@ class _CallHistoryScreenState extends State<CallHistoryScreen> {
         padding: const EdgeInsets.symmetric(horizontal: 16),
         child: ListView.builder(
           padding: EdgeInsets.zero,
-          itemCount: mainApplicationController.callHistoryList.length,
+          itemCount: mainApplicationController.getTransactionList.length,
           physics: const AlwaysScrollableScrollPhysics(),
+          reverse: true,
           shrinkWrap: true,
           itemBuilder: (context, index) {
-            var item = mainApplicationController.callHistoryList[index];
+            var item = mainApplicationController.getTransactionList[index];
 
-            var title = item["partner"]["avatarName"] ?? "No Title Found";
-            // var startDate = item["startTime"];
-            var endDate = item["endTime"];
-            //var imgUrl = item["thumbnailImg"]["url"];
-            var duration = item["duration"] ?? "";
-            var userCost = item["userCost"] ?? 0.0;
+            var amount = item["amount"] ?? "0";
+            var offer = item["offer"] ?? "0";
+            var transactionDate = item["transactionDate"];
+            var razorpayPaymentStatus =
+                item["paymentInfo"]["razorpay_paymentStatus"];
 
             return GestureDetector(
-              onTap: () {
-                // Get.to(() => BatchDetailsMainPage(
-                //   batchId: batchId,
-                //   // classId: clsId,
-                //   batchName: title,
-                //   price: double.parse("$price"),
-                //   discount: discount,
-                //   isFree: isFree,
-                //   mrp: double.parse("$mrp"),
-                // ));
-              },
+              onTap: () {},
               child: Container(
                 margin: const EdgeInsets.only(bottom: 12, top: 4),
                 decoration: BoxDecoration(
@@ -103,7 +93,13 @@ class _CallHistoryScreenState extends State<CallHistoryScreen> {
                         children: [
                           CircleAvatar(
                             radius: 24,
-                            backgroundColor: appColor,
+                            backgroundColor: appColor.withOpacity(0.2),
+                            child: const Center(
+                              child: Icon(
+                                Icons.history,
+                                size: 20,
+                              ),
+                            ),
                           ),
                           const SizedBox(width: 8),
                           Expanded(
@@ -111,7 +107,7 @@ class _CallHistoryScreenState extends State<CallHistoryScreen> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 SizedBox(
-                                  child: Text("$title",
+                                  child: Text("$amount",
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
                                       style: GoogleFonts.roboto(
@@ -125,14 +121,14 @@ class _CallHistoryScreenState extends State<CallHistoryScreen> {
                                 Row(
                                   children: [
                                     const Icon(
-                                      Icons.call_received,
+                                      Icons.calendar_month_sharp,
                                       color: Colors.green,
                                       size: 16,
                                     ),
                                     SizedBox(
                                       child: Text(
                                           mainApplicationController
-                                              .formatDate(endDate),
+                                              .formatDate(transactionDate),
                                           maxLines: 1,
                                           overflow: TextOverflow.ellipsis,
                                           style: GoogleFonts.roboto(
@@ -149,36 +145,17 @@ class _CallHistoryScreenState extends State<CallHistoryScreen> {
                             ),
                           ),
                           const SizedBox(width: 8),
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.end,
-                            children: [
-                              SizedBox(
-                                child: Text("${userCost.toStringAsFixed(2)}₹",
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: GoogleFonts.roboto(
-                                      textStyle: TextStyle(
-                                        color: black,
-                                        fontSize: 13.5,
-                                        fontWeight: FontWeight.w700,
-                                      ),
-                                    )),
-                              ),
-                              const SizedBox(height: 3),
-                              SizedBox(
-                                child: Text("$duration",
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: GoogleFonts.roboto(
-                                      textStyle: TextStyle(
-                                        color: greyColor.shade600,
-                                        fontSize: 11.5,
-                                        fontWeight: FontWeight.w500,
-                                      ),
-                                    )),
-                              ),
-                            ],
-                          ),
+                          SizedBox(
+                            child: Text("$razorpayPaymentStatus",
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: GoogleFonts.roboto(
+                                  textStyle: const TextStyle(
+                                    fontSize: 13.5,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                )),
+                          )
                         ],
                       ),
                     ),

@@ -5,6 +5,7 @@ import 'package:gad_fly/constant/color_code.dart';
 import 'package:gad_fly/controller/main_application_controller.dart';
 import 'package:gad_fly/controller/profile_controller.dart';
 import 'package:gad_fly/screens/agora_call_screen.dart';
+import 'package:gad_fly/screens/home/profile/wallet_screen.dart';
 import 'package:gad_fly/screens/messages_screen.dart';
 import 'package:gad_fly/services/socket_service.dart';
 import 'package:gad_fly/widgets/drawer.dart';
@@ -30,60 +31,26 @@ class _HomePageState extends State<HomePage> {
   final AudioPlayer _audioPlayer = AudioPlayer();
   String? _currentlyPlayingUrl;
 
-  void _toggleAudio(String url) async {
-    if (_currentlyPlayingUrl == url) {
-      await _audioPlayer.stop();
-      setState(() {
-        _currentlyPlayingUrl = null;
-      });
-    } else {
-      if (_currentlyPlayingUrl != null) {
-        await _audioPlayer.stop();
-      }
-      await _audioPlayer.play(UrlSource(url));
-      setState(() {
-        _currentlyPlayingUrl = url;
-      });
-    }
-  }
-
   initFunction() async {
     if (mainApplicationController.authToken.value != "") {
       await chatService.connect(
-        // (MediaStream stream) {
-        //   // setState(() {
-        //   //   remoteStream = stream;
-        //   // });
-        // },
         (_) {},
       );
       await chatService.requestPartnerList();
+      await profileController.getProfile();
+      await mainApplicationController.getAllChat();
+      await mainApplicationController.getAllCallHistory();
+      await mainApplicationController.getRechargeOffer();
+      await mainApplicationController.getTransaction();
     }
   }
 
   @override
   void initState() {
     mainApplicationController.checkMicrophonePermission();
-
     initFunction();
-    profileController.getProfile();
-    mainApplicationController.getAllChat();
-    mainApplicationController.getTransaction();
-    mainApplicationController.getAllTransaction();
     super.initState();
   }
-
-  // void _onRequestAccepted(Map<String, dynamic> data) async {
-  //   // mainApplicationController.partnerList.clear();
-  //   // if (data.containsKey('data')) {
-  //   //   final List<dynamic> noteData = data['data'];
-  //   //   List<Map<String, dynamic>> dataList =
-  //   //       noteData.map((data) => data as Map<String, dynamic>).toList();
-  //   //   mainApplicationController.partnerList.value = dataList;
-  //   // } else {
-  //   //   throw Exception('Invalid response format: "data" field not found');
-  //   // }
-  // }
 
   @override
   void dispose() {
@@ -95,7 +62,7 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     var height = MediaQuery.of(context).size.height;
     var width = MediaQuery.of(context).size.width;
-    var appYellow = const Color(0xFFFFE30F);
+    // var appYellow = const Color(0xFFFFE30F);
     var appGreenColor = const Color(0xFF35D673);
     return Scaffold(
       resizeToAvoidBottomInset: false,
@@ -106,9 +73,9 @@ class _HomePageState extends State<HomePage> {
         leadingWidth: 0,
         automaticallyImplyLeading: false,
         title: GestureDetector(
-          onTap: () async {
-            await chatService.requestPartnerList();
-          },
+          // onTap: () async {
+          //   await chatService.requestPartnerList();
+          // },
           child: Row(
             children: [
               Text(
@@ -128,24 +95,84 @@ class _HomePageState extends State<HomePage> {
           if (!isCalling)
             GestureDetector(
               onTap: () async {
-                final profileData = {
-                  "amount": 100,
-                };
-                setState(() {
-                  isLoading = true;
-                });
-                await mainApplicationController
-                    .transactionCreate(profileData)
-                    .then((onValue) {
-                  if (onValue != null) {
-                    Get.snackbar("wow", "payment 100 successfully");
-                  } else {
-                    Get.snackbar("Alert", "payment  failed");
-                  }
-                });
-                setState(() {
-                  isLoading = false;
-                });
+                // final profileData = {
+                //   "amount": 100,
+                // };
+                // setState(() {
+                //   isLoading = true;
+                // });
+                // await mainApplicationController
+                //     .transactionCreate(profileData)
+                //     .then((onValue) {
+                //   if (onValue != null) {
+                //     Get.snackbar("wow", "payment 100 successfully");
+                //   } else {
+                //     Get.snackbar("Alert", "payment  failed");
+                //   }
+                // });
+                // setState(() {
+                //   isLoading = false;
+                // });
+                ///
+                // String? razorpayKey;
+                // Map<String, Object> paymentMethod;
+                // await mainApplicationController
+                //     .fetchRazorpayKey()
+                //     .then((onValue) async {
+                //   if (onValue != null) {
+                //     razorpayKey = onValue;
+                //     // if (promoCode ==
+                //     //         "no promo" ||
+                //     //     promoCode ==
+                //     //         "")
+                //     // {
+                //     paymentMethod = {
+                //       "paymentMethod": {"cod": false, "online": true}
+                //     };
+                //     // } else {
+                //     //   paymentMethod =
+                //     //       {
+                //     //     "paymentMethod":
+                //     //         {
+                //     //       "cod":
+                //     //           false,
+                //     //       "online":
+                //     //           true
+                //     //     },
+                //     //     "couponCode":
+                //     //         promoCode
+                //     //   };
+                //     // }
+                //     await mainApplicationController
+                //         .transactionCreate(paymentMethod, razorpayKey)
+                //         .then((onValue) async {
+                //       if (onValue != null) {
+                //         orderId = onValue["_id"];
+                //         openCheckOut(
+                //           "${onValue["productData"]["grandTotal"]}",
+                //           razorpayKey!,
+                //           onValue["paymentInfo"]["razorpay_order_id"],
+                //         );
+                //         // Get.to(() =>
+                //         //     RazorpayPaymentScreen(
+                //         //       razorpayKey: razorpayKey!,
+                //         //       orderId: onValue["_id"],
+                //         //       razorPayOrderId: onValue["paymentInfo"]["razorpay_order_id"],
+                //         //       grandTotal: "${onValue["productData"]["grandTotal"]}",
+                //         //     ));
+                //       } else {
+                //         Get.snackbar(
+                //             "Alert", "Something went wrong Order Not Created");
+                //       }
+                //     });
+                //   } else {
+                //     Get.snackbar(
+                //         "Warning", "Something went wrong with Online Method ");
+                //     Navigator.of(context).pop();
+                //   }
+                // });
+                ///
+                Get.to(() => const WalletScreen());
               },
               child: Container(
                 height: 28,
@@ -204,45 +231,122 @@ class _HomePageState extends State<HomePage> {
                 child: Column(
                   children: [
                     const SizedBox(height: 6),
-                    Container(
-                      height: 46,
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      decoration: BoxDecoration(
-                        color: white,
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(
-                            color: black.withOpacity(0.8), width: 1.1),
-                      ),
-                      child: Center(
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              "search...",
-                              style: TextStyle(
-                                  color: black.withOpacity(0.5),
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.w400),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 10, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: white,
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(
+                                  color: black.withOpacity(0.8), width: 1.1),
                             ),
-                            Icon(
-                              CupertinoIcons.search,
-                              color: black.withOpacity(0.5),
-                            )
-                          ],
+                            child: TextFormField(
+                              //  controller: realNameController,
+                              decoration: InputDecoration(
+                                  isDense: true,
+                                  hintText: 'search....',
+                                  hintStyle: TextStyle(
+                                      color: black.withOpacity(0.5),
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.w400),
+                                  border: InputBorder.none),
+                              onChanged: (value) {
+                                mainApplicationController.searchText.value =
+                                    value;
+                              },
+                            ),
+                            // child: Center(
+                            //   child: Row(
+                            //     mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            //     children: [
+                            //       Text(
+                            //         "search...",
+                            //         style: TextStyle(
+                            //             color: black.withOpacity(0.5),
+                            //             fontSize: 15,
+                            //             fontWeight: FontWeight.w400),
+                            //       ),
+                            //       Icon(
+                            //         CupertinoIcons.search,
+                            //         color: black.withOpacity(0.5),
+                            //       )
+                            //     ],
+                            //   ),
+                            // ),
+                          ),
                         ),
-                      ),
+                        const SizedBox(width: 10),
+                        GestureDetector(
+                          onTap: () async {
+                            await chatService.requestPartnerList();
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: Colors.grey.shade500,
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: const Center(
+                                child: Icon(
+                              Icons.refresh,
+                              color: Colors.white,
+                              size: 22,
+                            )),
+                          ),
+                        ),
+                      ],
                     ),
                     const SizedBox(height: 6),
                     Obx(() {
+                      var filteredList =
+                          mainApplicationController.filteredPartners;
+                      if (filteredList.isEmpty) {
+                        return SizedBox(
+                          height: height * 0.65,
+                          child:
+                              const Center(child: Text("Partners Not Found.")),
+                        );
+                      }
+
+                      // if (mainApplicationController.partnerList.isEmpty) {
+                      //   return SizedBox(
+                      //     // color: Colors.green,
+                      //     height: height * 0.65,
+                      //     child: Center(
+                      //       child: GestureDetector(
+                      //         onTap: () async {
+                      //           await chatService.requestPartnerList();
+                      //         },
+                      //         child: Container(
+                      //           width: width * 0.5,
+                      //           height: 46,
+                      //           decoration: BoxDecoration(
+                      //               color: appColor.withOpacity(0.5),
+                      //               borderRadius: BorderRadius.circular(8)),
+                      //           child: const Center(
+                      //             child: Text(
+                      //               "Re-Load",
+                      //               style: TextStyle(
+                      //                   color: Colors.white,
+                      //                   fontSize: 16,
+                      //                   fontWeight: FontWeight.w500),
+                      //             ),
+                      //           ),
+                      //         ),
+                      //       ),
+                      //     ),
+                      //   );
+                      // }
                       return ListView.builder(
                           padding: EdgeInsets.zero,
                           shrinkWrap: true,
-                          itemCount:
-                              mainApplicationController.partnerList.length,
+                          itemCount: filteredList.length,
                           physics: const NeverScrollableScrollPhysics(),
                           itemBuilder: (context, index) {
-                            var item =
-                                mainApplicationController.partnerList[index];
+                            var item = filteredList[index];
                             return GestureDetector(
                               onTap: () {
                                 // Navigator.push(
@@ -488,19 +592,6 @@ class _HomePageState extends State<HomePage> {
                                         Expanded(
                                           child: GestureDetector(
                                             onTap: () async {
-                                              // setState(() {
-                                              //   avtarName =
-                                              //       item["personalInfo"]
-                                              //           ["avatarName"];
-                                              // });
-                                              // await chatService
-                                              //     .setupWebRTC();
-                                              // await chatService
-                                              //     .initiateCall(
-                                              //         item["_id"]);
-                                              // setState(() {
-                                              //   isCalling = true;
-                                              // });
                                               Navigator.push(
                                                   context,
                                                   MaterialPageRoute(
@@ -575,5 +666,22 @@ class _HomePageState extends State<HomePage> {
         ],
       ),
     );
+  }
+
+  void _toggleAudio(String url) async {
+    if (_currentlyPlayingUrl == url) {
+      await _audioPlayer.stop();
+      setState(() {
+        _currentlyPlayingUrl = null;
+      });
+    } else {
+      if (_currentlyPlayingUrl != null) {
+        await _audioPlayer.stop();
+      }
+      await _audioPlayer.play(UrlSource(url));
+      setState(() {
+        _currentlyPlayingUrl = url;
+      });
+    }
   }
 }

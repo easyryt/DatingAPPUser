@@ -17,6 +17,7 @@ class UserCallScreen extends StatefulWidget {
 class _UserCallScreenState extends State<UserCallScreen> {
   final AgoraCallService controller = Get.put(AgoraCallService());
   final AudioPlayer _audioPlayer = AudioPlayer();
+
   @override
   void initState() {
     controller.initiateCall(widget.partnerId);
@@ -24,6 +25,7 @@ class _UserCallScreenState extends State<UserCallScreen> {
       controller.isRinging.value = false;
     });
     super.initState();
+
     controller.isRinging.listen((isRinging) {
       if (isRinging) {
         _playRingingSound();
@@ -117,7 +119,12 @@ class _UserCallScreenState extends State<UserCallScreen> {
               const SizedBox(height: 20),
               ElevatedButton(
                 onPressed: () async {
-                  controller.endCall(controller.channelName.value);
+                  await controller.endCall(controller.channelName.value);
+                  if (controller.isJoined.value == false) {
+                    controller.engine.leaveChannel();
+                    controller.isJoined.value = false;
+                    Get.back();
+                  }
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.red,
@@ -148,10 +155,8 @@ class _UserCallScreenState extends State<UserCallScreen> {
 
   void _stopRingingSound() async {
     try {
-      if (controller.isRinging.value) {
-        await _audioPlayer.stop();
-        controller.isRinging.value = false;
-      }
+      await _audioPlayer.stop();
+      controller.isRinging.value = false;
     } catch (e) {
       print("Error stopping sound: $e");
     }

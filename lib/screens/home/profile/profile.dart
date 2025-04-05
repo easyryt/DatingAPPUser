@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:gad_fly/controller/profile_controller.dart';
-import 'package:gad_fly/screens/auth/main_login.dart';
+import 'package:gad_fly/screens/auth/registration_page.dart';
 import 'package:gad_fly/screens/home/profile/my_profile.dart';
 import 'package:gad_fly/screens/home/profile/wallet_screen.dart';
 import 'package:get/get.dart';
@@ -35,9 +35,9 @@ class _ProfileState extends State<Profile> {
     var whiteColor = Colors.white;
     var blackColor = Colors.black;
     var appColor = const Color(0xFF8CA6DB);
-    var appYellow = const Color(0xFFFFE30F);
-    var appGreenColor = const Color(0xFF35D673);
-    var greyMedium1Color = const Color(0xFFDBDBDB);
+    // var appYellow = const Color(0xFFFFE30F);
+    // var appGreenColor = const Color(0xFF35D673);
+    // var greyMedium1Color = const Color(0xFFDBDBDB);
     return WillPopScope(
       onWillPop: () async {
         // SystemNavigator.pop();
@@ -141,7 +141,7 @@ class _ProfileState extends State<Profile> {
                                   SharedPreferences prefs =
                                       await SharedPreferences.getInstance();
                                   await prefs.clear();
-                                  Get.to(() => const MainLogInScreen());
+                                  Get.to(() => const RegisterScreen());
                                 },
                                 child: _buildSettingsOption(
                                     Icons.logout, 'Logout')),
@@ -243,13 +243,13 @@ class _ProfileState extends State<Profile> {
         ],
       ),
     );
-    ListTile(
-      leading: Icon(icon, color: Colors.black54),
-      title: Text(title, style: const TextStyle(fontSize: 16)),
-      subtitle: subtitle != null
-          ? Text(subtitle, style: const TextStyle(color: Colors.grey))
-          : null,
-      onTap: () {},
-    );
+    // ListTile(
+    //   leading: Icon(icon, color: Colors.black54),
+    //   title: Text(title, style: const TextStyle(fontSize: 16)),
+    //   subtitle: subtitle != null
+    //       ? Text(subtitle, style: const TextStyle(color: Colors.grey))
+    //       : null,
+    //   onTap: () {},
+    // );
   }
 }

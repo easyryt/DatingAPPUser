@@ -1,9 +1,12 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 import 'package:gad_fly/constant/color_code.dart';
 import 'package:gad_fly/controller/chat_controller.dart';
 import 'package:gad_fly/controller/main_application_controller.dart';
 import 'package:gad_fly/model/messages_model.dart';
+import 'package:gad_fly/screens/agora_call_screen.dart';
 import 'package:gad_fly/services/socket_service.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -97,9 +100,20 @@ class _MessagesScreenState extends State<MessagesScreen> {
       chatController.isTyping.value = false;
     });
 
-    // chatService.socket.on('message-status', (data) {
-    //   print(data);
-    // });
+    chatService.socket.on('message-cost', (data) {
+      print(data);
+      chatController.costTimer?.cancel();
+
+      chatController.lastMessageCost.value =
+          "cost: ₹${data["cost"].toString()}";
+      chatController.lastMessageId.value = "${data["messageId"]}";
+
+      chatController.costTimer = Timer(const Duration(seconds: 1), () {
+        chatController.lastMessageCost.value = '';
+        chatController.lastMessageId.value = '';
+        chatController.messages.refresh();
+      });
+    });
 
     chatService.socket.on('message-status', (data) {
       var messageIds;
@@ -114,7 +128,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
 
           if (index != -1) {
             chatController.messages[index].status = status;
-            chatController.messages.refresh(); // To update the UI
+            chatController.messages.refresh();
           }
         }
       }
@@ -158,7 +172,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
   @override
   Widget build(BuildContext context) {
     var height = MediaQuery.of(context).size.height;
-    var width = MediaQuery.of(context).size.width;
+    // var width = MediaQuery.of(context).size.width;
     return WillPopScope(
       onWillPop: () async {
         Navigator.pop(context);
@@ -183,7 +197,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                widget.name ?? "Message",
+                widget.name,
                 style:
                     const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
               ),
@@ -206,6 +220,13 @@ class _MessagesScreenState extends State<MessagesScreen> {
                   //               id: widget.receiverId,
                   //               name: widget.name,
                   //             )));
+                  Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (_) => UserCallScreen(
+                                partnerId: widget.receiverId,
+                                name: widget.name,
+                              )));
                 },
                 icon: const Icon(
                   Icons.call,
@@ -488,6 +509,28 @@ class _MessagesScreenState extends State<MessagesScreen> {
                                 ],
                               ),
                             ),
+                            if (isUser &&
+                                message.id ==
+                                    chatController.lastMessageId.value &&
+                                chatController.lastMessageId.value != '')
+                              Align(
+                                alignment: Alignment.centerRight,
+                                child: Padding(
+                                  padding: const EdgeInsets.only(right: 12.0),
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 6, vertical: 3),
+                                    decoration: BoxDecoration(
+                                        color: Colors.grey,
+                                        borderRadius: BorderRadius.circular(8)),
+                                    child: Text(
+                                      chatController.lastMessageCost.value,
+                                      style: const TextStyle(
+                                          fontSize: 12, color: Colors.white),
+                                    ),
+                                  ),
+                                ),
+                              ),
                           ],
                         );
                       },
@@ -580,14 +623,6 @@ class _MessagesScreenState extends State<MessagesScreen> {
     });
   }
 
-  // void startTyping(String receiverId) {
-  //   chatService.socket.emit('typing-start', {'receiverId': receiverId});
-  // }
-  //
-  // void stopTyping(String receiverId) {
-  //   chatService.socket.emit('typing-stop', {'receiverId': receiverId});
-  // }
-
   void startTyping(String conversationId) {
     chatService.socket.emit('typing-start', {'conversationId': conversationId});
   }
@@ -596,33 +631,8 @@ class _MessagesScreenState extends State<MessagesScreen> {
     chatService.socket.emit('typing-stop', {'conversationId': conversationId});
   }
 
-  // markAsSeen(String messagesId) {
-  //   chatService.socket.emit('mark-as-seen', {'messageIds ': messagesId});
-  // }
-
   void markMessagesAsSeen(List<String> messageIds) {
     chatService.socket.emit('mark-as-seen', {'messageIds': messageIds});
-  }
-
-  String formatDate(String inputDate) {
-    try {
-      DateTime dateTime = DateTime.parse(inputDate);
-      DateTime now = DateTime.now();
-      // String outputDate = DateFormat('hh:mm a').format(dateTime);
-      // return outputDate;
-      if (dateTime.year == now.year &&
-          dateTime.month == now.month &&
-          dateTime.day == now.day) {
-        return DateFormat('hh:mm a').format(dateTime);
-      } else if (dateTime.year == now.year) {
-        return DateFormat('dd-MMM hh:mm a').format(dateTime);
-      } else {
-        return DateFormat('dd-MMM-yyyy hh:mm a').format(dateTime);
-      }
-    } catch (e) {
-      print('Invalid date format: $e');
-      return 'Invalid Date';
-    }
   }
 
   String formatDate1(String date, {bool showTime = true}) {
@@ -654,17 +664,5 @@ class _MessagesScreenState extends State<MessagesScreen> {
         );
       }
     });
-  }
-
-  void _onRequestAccepted(Map<String, dynamic> data) async {
-    // mainApplicationController.partnerList.clear();
-    // if (data.containsKey('data')) {
-    //   final List<dynamic> noteData = data['data'];
-    //   List<Map<String, dynamic>> dataList =
-    //       noteData.map((data) => data as Map<String, dynamic>).toList();
-    //   mainApplicationController.partnerList.value = dataList;
-    // } else {
-    //   throw Exception('Invalid response format: "data" field not found');
-    // }
   }
 }

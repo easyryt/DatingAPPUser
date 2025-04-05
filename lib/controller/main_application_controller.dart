@@ -23,11 +23,20 @@ class MainApplicationController extends GetxController {
     const HomePage(),
     //  const SizedBox(),
     const ChatScreen(),
-    const HistoryScreen(),
+    const CallHistoryScreen(),
   ];
 
-  var transactionList = [].obs;
-  Future getAllTransaction() async {
+  var searchText = ''.obs;
+  List get filteredPartners {
+    if (searchText.isEmpty) return partnerList;
+    return partnerList.where((item) {
+      String name = item["personalInfo"]["avatarName"].toLowerCase();
+      return name.contains(searchText.value.toLowerCase());
+    }).toList();
+  }
+
+  var callHistoryList = [].obs;
+  Future getAllCallHistory() async {
     final response = await http.get(
       Uri.parse('${ApiEndpoints.baseUrl}/user/callHistory/getAll'),
       headers: {
@@ -35,7 +44,7 @@ class MainApplicationController extends GetxController {
       },
     );
     if (response.statusCode == 200) {
-      transactionList.clear();
+      callHistoryList.clear();
       final responseData = json.decode(response.body);
       // if (data.containsKey('data')) {
       //   final List<dynamic> noteData = data['data'];
@@ -45,7 +54,7 @@ class MainApplicationController extends GetxController {
       // } else {
       //   throw Exception('Invalid response format: "data" field not found');
       // }
-      transactionList.value = responseData["data"];
+      callHistoryList.value = responseData["data"];
       return true;
     } else {
       final responseData = json.decode(response.body);
@@ -100,8 +109,33 @@ class MainApplicationController extends GetxController {
     }
   }
 
-  Future transactionCreate(requestBody) async {
-    Uri uri = Uri.parse('${ApiEndpoints.baseUrl}/user/transaction/create');
+  var rechargeOfferList = [].obs;
+  Future getRechargeOffer() async {
+    try {
+      final response = await http.get(
+        Uri.parse('${ApiEndpoints.baseUrl}/user/transaction/recharge/getAll'),
+        headers: {
+          'x-user-token': authToken.value,
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final dynamic responseData = json.decode(response.body);
+        final data = responseData['data'];
+        rechargeOfferList.value = data;
+        return data;
+      } else {
+        print('Failed to load wallet: ${response.statusCode}');
+        return null;
+      }
+    } catch (e) {
+      print('Error while fetching wallet: $e');
+      return null;
+    }
+  }
+
+  Future transactionCreate(requestBody, id) async {
+    Uri uri = Uri.parse('${ApiEndpoints.baseUrl}/user/transaction/create/$id');
 
     try {
       final response = await http.post(
@@ -110,17 +144,20 @@ class MainApplicationController extends GetxController {
           'Content-Type': 'application/json',
           "x-user-token": authToken.value,
         },
-        body: json.encode(requestBody),
+        body: null, //json.encode(requestBody),
       );
 
       if (response.statusCode == 201 || response.statusCode == 200) {
         final responseData = json.decode(response.body);
 
         final data = responseData['data'];
-        await getTransaction();
+        //  await getTransaction();
         return data;
       } else {
         final responseData = json.decode(response.body);
+        if (kDebugMode) {
+          print(responseData);
+        }
         return null;
       }
     } catch (error) {
@@ -131,10 +168,35 @@ class MainApplicationController extends GetxController {
     }
   }
 
+  var getTransactionList = [].obs;
   Future getTransaction() async {
     try {
       final response = await http.get(
         Uri.parse('${ApiEndpoints.baseUrl}/user/transaction/history'),
+        headers: {
+          'x-user-token': authToken.value,
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final dynamic responseData = json.decode(response.body);
+        final data = responseData['data'];
+        getTransactionList.value = data;
+        return data;
+      } else {
+        print('Failed to load wallet: ${response.statusCode}');
+        return null;
+      }
+    } catch (e) {
+      print('Error while fetching wallet: $e');
+      return null;
+    }
+  }
+
+  Future fetchRazorpayKey() async {
+    try {
+      final response = await http.get(
+        Uri.parse('${ApiEndpoints.baseUrl}/user/transaction/seceretKey'),
         headers: {
           'x-user-token': authToken.value,
         },
@@ -150,6 +212,49 @@ class MainApplicationController extends GetxController {
       }
     } catch (e) {
       print('Error while fetching wallet: $e');
+      return null;
+    }
+  }
+
+  Future verifyPayment(orderId, razorpayResponse) async {
+    var paymentData = {
+      "razorpay_order_id": razorpayResponse.orderId,
+      "razorpay_payment_id": razorpayResponse.paymentId,
+      "razorpay_signature": razorpayResponse.signature,
+      "transactionId": orderId
+    };
+
+    Uri uri =
+        Uri.parse('${ApiEndpoints.baseUrl}/user/transaction/verifyPayment');
+
+    try {
+      final response = await http.post(
+        uri,
+        headers: {
+          'Content-Type': 'application/json',
+          "x-user-token": authToken.value,
+        },
+        body: json.encode(paymentData),
+      );
+
+      if (response.statusCode == 201 || response.statusCode == 200) {
+        final responseData = json.decode(response.body);
+
+        final data = responseData;
+
+        await getTransaction();
+        return data;
+      } else {
+        final responseData = json.decode(response.body);
+        if (kDebugMode) {
+          print(responseData);
+        }
+        return null;
+      }
+    } catch (error) {
+      if (kDebugMode) {
+        print('Error occurred: $error');
+      }
       return null;
     }
   }

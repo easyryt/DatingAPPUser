@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:gad_fly/constant/color_code.dart';
 import 'package:gad_fly/controller/profile_controller.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -17,6 +18,9 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
   final ProfileController _updateProfileController = Get.find();
   File? _selectedImage;
   bool isLoading = false;
+  final List<String> _languages = [];
+  String _gender = 'male';
+  String _intersted = 'female';
 
   initFunction() async {}
 
@@ -27,30 +31,44 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
     _updateProfileController.getProfile().then((profileData) {
       if (profileData != null) {
         final data = profileData["data"];
+        _updateProfileController.amount.value =
+            double.parse("${data["walletAmount"]}");
         if (mounted) {
           setState(() {
-            _updateProfileController.aName.text = data["avatarName"] ?? "";
+            _updateProfileController.aNameController.text =
+                data["avatarName"] ?? "";
+            _updateProfileController.oNameController.text = data["name"] ?? "";
+            _updateProfileController.phoneController.text = data["phone"] ?? "";
             if (data["languages"].length != 0) {
-              _updateProfileController.languagesController.text =
-                  data["languages"][0] ?? "";
+              // _updateProfileController.languagesController.text =
+              //     data["languages"][0] ?? "";
+
+              //_languages = data["languages"];
+              _languages.addAll(data["languages"].cast<String>());
             }
-            if (data["languages"].length > 1) {
-              _updateProfileController.languagesController1.text =
-                  data["languages"][1] ?? "";
-            }
-            _updateProfileController.email.text = data["email"] ?? "";
+            //  _updateProfileController.email.text = data["email"] ?? "";
             final gender = data["gender"] ?? "";
             _updateProfileController.gender.value = (gender == "male")
                 ? 0
                 : (gender == "female")
                     ? 1
                     : 2;
+            _gender = (gender == "male")
+                ? "male"
+                : (gender == "female")
+                    ? "female"
+                    : "other";
             final intersted = data["intersted"] ?? "";
             _updateProfileController.intersted.value = (intersted == "male")
                 ? 0
                 : (intersted == "female")
                     ? 1
                     : 2;
+            _intersted = (gender == "male")
+                ? "male"
+                : (gender == "female")
+                    ? "female"
+                    : "other";
           });
         }
       } else {
@@ -83,8 +101,8 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
     var whiteColor = Colors.white;
     var blackColor = Colors.black;
     var appColor = const Color(0xFF8CA6DB);
-    var appYellow = const Color(0xFFFFE30F);
-    var appGreenColor = const Color(0xFF35D673);
+    // var appYellow = const Color(0xFFFFE30F);
+    // var appGreenColor = const Color(0xFF35D673);
     var greyMedium1Color = const Color(0xFFDBDBDB);
     return Scaffold(
       backgroundColor: whiteColor,
@@ -137,48 +155,48 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
                     child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Obx(() {
-                            return Center(
-                              child: CircleAvatar(
-                                  radius: 32,
-                                  backgroundColor: Colors.grey[400],
-                                  child: _selectedImage != null
-                                      ? Container(
-                                          height: 58,
-                                          width: 58,
-                                          decoration: BoxDecoration(
-                                            borderRadius:
-                                                BorderRadius.circular(30),
-                                            image: DecorationImage(
-                                                image:
-                                                    FileImage(_selectedImage!),
-                                                fit: BoxFit.cover),
-                                          ),
-                                        )
-                                      : _updateProfileController.imgUrl.value !=
-                                              ""
-                                          ? Container(
-                                              height: 58,
-                                              width: 58,
-                                              decoration: BoxDecoration(
-                                                borderRadius:
-                                                    BorderRadius.circular(30),
-                                                image: DecorationImage(
-                                                    image: NetworkImage(
-                                                        _updateProfileController
-                                                            .imgUrl.value),
-                                                    fit: BoxFit.cover),
-                                              ),
-                                            )
-                                          : CircleAvatar(
-                                              radius: 30,
-                                              backgroundColor: appColor,
-                                            )),
-                            );
-                          }),
-                          const SizedBox(
-                            height: 6,
-                          ),
+                          // Obx(() {
+                          //   return Center(
+                          //     child: CircleAvatar(
+                          //         radius: 32,
+                          //         backgroundColor: Colors.grey[400],
+                          //         child: _selectedImage != null
+                          //             ? Container(
+                          //                 height: 58,
+                          //                 width: 58,
+                          //                 decoration: BoxDecoration(
+                          //                   borderRadius:
+                          //                       BorderRadius.circular(30),
+                          //                   image: DecorationImage(
+                          //                       image:
+                          //                           FileImage(_selectedImage!),
+                          //                       fit: BoxFit.cover),
+                          //                 ),
+                          //               )
+                          //             : _updateProfileController.imgUrl.value !=
+                          //                     ""
+                          //                 ? Container(
+                          //                     height: 58,
+                          //                     width: 58,
+                          //                     decoration: BoxDecoration(
+                          //                       borderRadius:
+                          //                           BorderRadius.circular(30),
+                          //                       image: DecorationImage(
+                          //                           image: NetworkImage(
+                          //                               _updateProfileController
+                          //                                   .imgUrl.value),
+                          //                           fit: BoxFit.cover),
+                          //                     ),
+                          //                   )
+                          //                 : CircleAvatar(
+                          //                     radius: 30,
+                          //                     backgroundColor: appColor,
+                          //                   )),
+                          //   );
+                          // }),
+                          // const SizedBox(
+                          //   height: 6,
+                          // ),
                           // Center(
                           //   child: InkWell(
                           //     onTap: () async {
@@ -194,38 +212,16 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
                           //     ),
                           //   ),
                           // ),
-                          const SizedBox(height: 12),
+                          const SizedBox(height: 6),
                           SizedBox(
                             height: 50,
                             child: TextFormField(
-                              controller: _updateProfileController.aName,
+                              controller:
+                                  _updateProfileController.oNameController,
                               cursorColor: blackColor,
                               style: TextStyle(color: blackColor),
                               decoration: InputDecoration(
-                                labelText: "Avatar Name",
-                                labelStyle:
-                                    GoogleFonts.roboto(color: blackColor),
-                                floatingLabelStyle:
-                                    GoogleFonts.roboto(color: blackColor),
-                                enabledBorder: OutlineInputBorder(
-                                    borderSide:
-                                        BorderSide(color: Colors.grey.shade300),
-                                    borderRadius: BorderRadius.circular(5)),
-                                focusedBorder: OutlineInputBorder(
-                                  borderSide: BorderSide(color: blackColor),
-                                ),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 12),
-                          SizedBox(
-                            height: 50,
-                            child: TextFormField(
-                              controller: _updateProfileController.email,
-                              cursorColor: blackColor,
-                              style: TextStyle(color: blackColor),
-                              decoration: InputDecoration(
-                                labelText: "Email ID",
+                                labelText: "Original Name",
                                 labelStyle:
                                     GoogleFonts.roboto(color: blackColor),
                                 floatingLabelStyle:
@@ -245,11 +241,11 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
                             height: 50,
                             child: TextFormField(
                               controller:
-                                  _updateProfileController.languagesController,
+                                  _updateProfileController.aNameController,
                               cursorColor: blackColor,
                               style: TextStyle(color: blackColor),
                               decoration: InputDecoration(
-                                labelText: "Preferred Language",
+                                labelText: "Display Name",
                                 labelStyle:
                                     GoogleFonts.roboto(color: blackColor),
                                 floatingLabelStyle:
@@ -269,11 +265,12 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
                             height: 50,
                             child: TextFormField(
                               controller:
-                                  _updateProfileController.languagesController1,
+                                  _updateProfileController.phoneController,
+                              readOnly: true,
                               cursorColor: blackColor,
                               style: TextStyle(color: blackColor),
                               decoration: InputDecoration(
-                                labelText: "Additional Language",
+                                labelText: "Phone No.",
                                 labelStyle:
                                     GoogleFonts.roboto(color: blackColor),
                                 floatingLabelStyle:
@@ -288,6 +285,172 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
                               ),
                             ),
                           ),
+                          const SizedBox(height: 12),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text("Spoken Languages",
+                                  style: TextStyle(
+                                      fontWeight: FontWeight.w500,
+                                      fontSize: 14)),
+                              Wrap(
+                                spacing: 8.0,
+                                children: _languages
+                                    .map((lang) => Chip(
+                                          backgroundColor: white,
+                                          surfaceTintColor: white,
+                                          shape: RoundedRectangleBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(4),
+                                              side: BorderSide(
+                                                  color: greyMedium1Color,
+                                                  width: 1)),
+                                          label: Text(lang),
+                                          deleteIcon:
+                                              const Icon(Icons.close, size: 18),
+                                          onDeleted: () => setState(
+                                              () => _languages.remove(lang)),
+                                        ))
+                                    .toList(),
+                              ),
+                              TextFormField(
+                                controller: _updateProfileController
+                                    .languagesController,
+                                // readOnly: true,
+                                decoration: InputDecoration(
+                                  isDense: true,
+                                  hintText: 'Add Language',
+                                  hintStyle: const TextStyle(),
+                                  filled: true,
+                                  suffixIcon: IconButton(
+                                    icon: const Icon(Icons.add),
+                                    onPressed: () async {
+                                      if (_updateProfileController
+                                          .languagesController
+                                          .text
+                                          .isNotEmpty) {
+                                        setState(() {
+                                          _languages.add(
+                                              _updateProfileController
+                                                  .languagesController.text);
+                                          _updateProfileController
+                                              .languagesController
+                                              .clear();
+                                        });
+                                      }
+                                    },
+                                  ),
+                                  fillColor: greyMedium1Color.withOpacity(0.3),
+                                  enabledBorder: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(10),
+                                      borderSide: BorderSide(
+                                          color:
+                                              greyMedium1Color.withOpacity(0.6),
+                                          width: 1)),
+                                  focusedBorder: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(10),
+                                      borderSide: BorderSide(
+                                          color:
+                                              greyMedium1Color.withOpacity(0.6),
+                                          width: 1)),
+                                ),
+                                onFieldSubmitted: (value) {
+                                  if (value.isNotEmpty) {
+                                    setState(() {
+                                      _languages.add(value);
+                                      _updateProfileController
+                                          .languagesController
+                                          .clear();
+                                    });
+                                  }
+                                },
+                              ),
+                              // const SizedBox(height: 6),
+                              // const Text(
+                              //   "Email",
+                              //   style: TextStyle(
+                              //       fontWeight: FontWeight.w500, fontSize: 14),
+                              // ),
+                              // TextFormField(
+                              //   controller: emailController,
+                              //   // readOnly: true,
+                              //   keyboardType: TextInputType.emailAddress,
+                              //   decoration: InputDecoration(
+                              //     isDense: true,
+                              //     hintText: 'Email',
+                              //     hintStyle: const TextStyle(),
+                              //     filled: true,
+                              //     fillColor: greyMedium1Color.withOpacity(0.3),
+                              //     enabledBorder: OutlineInputBorder(
+                              //         borderRadius: BorderRadius.circular(10),
+                              //         borderSide: BorderSide(
+                              //             color: greyMedium1Color.withOpacity(0.6),
+                              //             width: 1)),
+                              //     focusedBorder: OutlineInputBorder(
+                              //         borderRadius: BorderRadius.circular(10),
+                              //         borderSide: BorderSide(
+                              //             color: greyMedium1Color.withOpacity(0.6),
+                              //             width: 1)),
+                              //   ),
+                              //   validator: (value) {
+                              //     if (value == null || value.isEmpty) {
+                              //       return 'Please enter email';
+                              //     }
+                              //     if (!value.contains('@')) {
+                              //       return 'Please enter a valid email';
+                              //     }
+                              //     return null;
+                              //   },
+                              // ),
+                            ],
+                          ),
+                          // SizedBox(
+                          //   height: 50,
+                          //   child: TextFormField(
+                          //     controller:
+                          //         _updateProfileController.languagesController,
+                          //     cursorColor: blackColor,
+                          //     style: TextStyle(color: blackColor),
+                          //     decoration: InputDecoration(
+                          //       labelText: "Preferred Language",
+                          //       labelStyle:
+                          //           GoogleFonts.roboto(color: blackColor),
+                          //       floatingLabelStyle:
+                          //           GoogleFonts.roboto(color: blackColor),
+                          //       enabledBorder: OutlineInputBorder(
+                          //           borderSide:
+                          //               BorderSide(color: Colors.grey.shade300),
+                          //           borderRadius: BorderRadius.circular(5)),
+                          //       focusedBorder: OutlineInputBorder(
+                          //         borderSide: BorderSide(color: blackColor),
+                          //       ),
+                          //     ),
+                          //   ),
+                          // ),
+                          // const SizedBox(height: 12),
+                          // SizedBox(
+                          //   height: 50,
+                          //   child: TextFormField(
+                          //     controller:
+                          //         _updateProfileController.languagesController1,
+                          //     cursorColor: blackColor,
+                          //     style: TextStyle(color: blackColor),
+                          //     decoration: InputDecoration(
+                          //       labelText: "Additional Language",
+                          //       labelStyle:
+                          //           GoogleFonts.roboto(color: blackColor),
+                          //       floatingLabelStyle:
+                          //           GoogleFonts.roboto(color: blackColor),
+                          //       enabledBorder: OutlineInputBorder(
+                          //           borderSide:
+                          //               BorderSide(color: Colors.grey.shade300),
+                          //           borderRadius: BorderRadius.circular(5)),
+                          //       focusedBorder: OutlineInputBorder(
+                          //         borderSide: BorderSide(color: blackColor),
+                          //       ),
+                          //     ),
+                          //   ),
+                          // ),
                           const SizedBox(height: 12),
                           Text(
                             "Gender",
@@ -305,6 +468,9 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
                                   return InkWell(
                                     onTap: () {
                                       _updateProfileController.gender.value = 0;
+                                      setState(() {
+                                        _gender = "male";
+                                      });
                                     },
                                     overlayColor: MaterialStateProperty.all(
                                         Colors.transparent),
@@ -351,6 +517,9 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
                                   return InkWell(
                                     onTap: () {
                                       _updateProfileController.gender.value = 1;
+                                      setState(() {
+                                        _gender = "female";
+                                      });
                                     },
                                     overlayColor: MaterialStateProperty.all(
                                         Colors.transparent),
@@ -399,6 +568,9 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
                                         Colors.transparent),
                                     onTap: () {
                                       _updateProfileController.gender.value = 2;
+                                      setState(() {
+                                        _gender = "other";
+                                      });
                                     },
                                     child: Row(
                                       children: [
@@ -458,6 +630,9 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
                                     onTap: () {
                                       _updateProfileController.intersted.value =
                                           0;
+                                      setState(() {
+                                        _intersted = "male";
+                                      });
                                     },
                                     overlayColor: MaterialStateProperty.all(
                                         Colors.transparent),
@@ -505,6 +680,9 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
                                     onTap: () {
                                       _updateProfileController.intersted.value =
                                           1;
+                                      setState(() {
+                                        _intersted = "female";
+                                      });
                                     },
                                     overlayColor: MaterialStateProperty.all(
                                         Colors.transparent),
@@ -554,6 +732,9 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
                                     onTap: () {
                                       _updateProfileController.intersted.value =
                                           2;
+                                      setState(() {
+                                        _intersted = "other";
+                                      });
                                     },
                                     child: Row(
                                       children: [
@@ -601,8 +782,18 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
                               setState(() {
                                 isLoading = true;
                               });
+                              final profileData = {
+                                "name": _updateProfileController
+                                    .oNameController.text,
+                                "avatarName": _updateProfileController
+                                    .aNameController.text,
+                                "gender": _gender,
+                                "intersted": _intersted,
+                                "languages": _languages,
+                                //"email": emailController.text,
+                              };
                               await _updateProfileController
-                                  .updateProfile()
+                                  .profileUpdate(profileData)
                                   .then((onValue) {
                                 if (onValue == true) {
                                   Get.snackbar(
